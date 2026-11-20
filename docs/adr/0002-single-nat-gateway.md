@@ -12,12 +12,12 @@ Worker nodes and internal cluster workloads reside in private subnets across two
 In AWS, NAT Gateways incur a fixed hourly charge (~$0.045/hour) plus per-GB data processing fees.
 
 ## Options Considered
-- **One NAT Gateway per AZ (Multi-AZ HA)**: Standard AWS Well-Architected recommendation for high availability in mission-critical environments. If an AZ experiences a NAT gateway impairment, traffic in other AZs is unaffected. Cost: ~$65/month for two NAT gateways idle.
-- **Single Shared NAT Gateway across AZs**: Both private subnets route internet-bound traffic through a single NAT Gateway located in public subnet A. Cost: ~$32.50/month (~15-20 INR/hour total cluster burn rate).
+- **One NAT Gateway per AZ (Multi-AZ HA)**: Standard AWS Well-Architected recommendation for high availability in mission-critical environments. If an AZ experiences a NAT gateway impairment, traffic in other AZs is unaffected. Cost: ~$65/month for two NAT gateways idle (estimate).
+- **Single Shared NAT Gateway across AZs**: Both private subnets route internet-bound traffic through a single NAT Gateway located in public subnet A. Estimated NAT Gateway cost: ~$32.50/month (~$0.045/hour idle, excluding data transfer). Estimated total platform cost: ~$0.22/hour during active sessions.
 - **NAT Instance (t4g.nano/micro)**: Lowest dollar cost, but requires self-managing iptables, source/destination check disabling, OS patching, and lack of automatic failover.
 
 ## Decision
-We provisioned a single NAT Gateway (`single_nat_gateway = true`, `one_nat_gateway_per_az = false`) deployed into the primary public subnet.
+We provisioned a single NAT Gateway (`enable_nat_gateway = true`, `single_nat_gateway = true`, `one_nat_gateway_per_az = false`) deployed into the primary public subnet.
 
 ## Consequences
 ### Positive

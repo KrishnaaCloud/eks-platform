@@ -22,12 +22,12 @@ The goal of Phase 1 is to establish a solid, stable baseline cluster with automa
 - **EKS Managed Node Groups**: AWS manages EC2 provisioning, AMI updates, graceful node draining via Kubernetes Eviction API during updates, and Auto Scaling Group registration.
 
 ## Decision
-We chose EKS Managed Node Groups using standard Amazon Linux 2023 / AL2 EKS-optimized AMIs. Node groups are provisioned in private subnets with automated termination lifecycle hooks and managed rolling upgrade capabilities.
+We chose EKS Managed Node Groups using standard Amazon Linux 2023 EKS-optimized AMIs. Node groups are provisioned in private subnets with automated termination lifecycle hooks and managed rolling upgrade capabilities.
 
 ## Consequences
 ### Positive
 - Fully declarative configuration through Terraform `terraform-aws-modules/eks/aws`.
-- Automated rolling updates with node draining prevent service disruptions.
+- Automated rolling updates with node draining are expected to reduce service disruptions during cluster maintenance.
 - Out-of-the-box integration with AWS IAM, security groups, and CloudWatch.
 
 ### Negative
