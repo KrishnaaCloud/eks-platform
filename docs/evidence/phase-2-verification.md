@@ -1,6 +1,6 @@
 # Phase 2: GitOps Platform Verification Evidence
 
-Date & Time: 2026-11-22T16:00:00+05:30 (10:30:00 UTC)
+Date & Time: 2026-11-22T16:07:35+05:30 (10:37:35 UTC)
 Environment: AWS Personal Sandbox (Region: ap-south-1)
 Target Branch: phase-2-gitops
 
@@ -16,74 +16,85 @@ Source: `time terraform apply -no-color tfplan 2>&1 | tee docs/evidence/apply.lo
 
 ---
 
-## 2. Measured Pod Counts and Status (`kubectl get pods -A`)
-Total Cluster Pods: 29
-Status: 29 Running, 0 Pending, 0 Failed, 0 Restarts
+## 2. Interactive Terminal Verification Session
 
-### Namespace Breakdown
-- `kube-system` (8 pods):
-  - aws-node (2 pods): 2/2 Running
-  - coredns (2 pods): 1/1 Running
-  - eks-pod-identity-agent (2 pods): 1/1 Running
-  - kube-proxy (2 pods): 1/1 Running
-- `argocd` (14 pods):
-  - argocd-server (1/1 Running)
-  - argocd-repo-server (1/1 Running)
-  - argocd-application-controller-0 (1/1 Running)
-  - argocd-applicationset-controller (1/1 Running)
-  - argocd-redis (1/1 Running)
-  - argocd-dex-server (1/1 Running)
-  - argocd-notifications-controller (1/1 Running)
-  - argocd-self-* instances (managed via Helm chart) (7 pods, 1/1 Running)
-- `dev` (1 pod):
-  - dev-sample-app-78c4c4999f-hh56z (1/1 Running)
-- `staging` (2 pods):
-  - staging-sample-app-5bd94b7ff9-d245z (1/1 Running)
-  - staging-sample-app-5bd94b7ff9-mlzkd (1/1 Running)
-- `kyverno` (4 pods):
-  - kyverno-admission-controller-b5f755d76-hspkg (1/1 Running)
-  - kyverno-background-controller-fbf6dc4b9-2mq9h (1/1 Running)
-  - kyverno-cleanup-controller-c9cc448b4-qdmdg (1/1 Running)
-  - kyverno-reports-controller-758c89b484-mdjlb (1/1 Running)
-
----
-
-## 3. Measured ArgoCD Application Sync & Health Status (`kubectl get applications -n argocd`)
 ```text
-NAME                 SYNC STATUS   HEALTH STATUS   REVISION                                   PROJECT
-argocd-self          Synced        Healthy         10.18.2                                    default
-dev-sample-app       Synced        Healthy         f4400fd1354e87e92cd4fd7fbb9da9b37e1290e2   default
-root-apps            Synced        Healthy         f4400fd1354e87e92cd4fd7fbb9da9b37e1290e2   default
-staging-sample-app   Synced        Healthy         f4400fd1354e87e92cd4fd7fbb9da9b37e1290e2   default
+$ kubectl config current-context
+arn:aws:eks:ap-south-1:<REDACTED_ACCOUNT_ID>:cluster/eks-platform
+
+$ kubectl run bad-test --image=nginx:latest
+Error from server: admission webhook "vpol.validate.kyverno.svc-fail-finegrained-require-resource-limits" denied the request: Policy require-resource-limits failed: CPU and memory resource limits are required for all containers.
+
+$ kubectl run bad-limits --image=nginx:1.27
+Error from server: admission webhook "vpol.validate.kyverno.svc-fail-finegrained-require-resource-limits" denied the request: Policy require-resource-limits failed: CPU and memory resource limits are required for all containers.
+
+$ kubectl apply -f /tmp/priv.yaml
+Error from server: error when creating "/tmp/priv.yaml": admission webhook "vpol.validate.kyverno.svc-fail-finegrained-disallow-privileged-containers" denied the request: Policy disallow-privileged-containers failed: Privileged containers are not allowed.
+
+$ kubectl get applications -n argocd
+NAME                 SYNC STATUS   HEALTH STATUS
+argocd-self          Synced        Healthy
+dev-sample-app       Synced        Healthy
+root-apps            Synced        Healthy
+staging-sample-app   Synced        Healthy
+
+$ kubectl get validatingpolicies
+NAME                             AGE     READY
+disallow-latest-tag              8m29s   true
+disallow-privileged-containers   8m28s   true
+require-resource-limits          8m28s   true
+
+$ kubectl get pods -A
+NAMESPACE     NAME                                                     READY   STATUS    RESTARTS   AGE
+argocd        argocd-application-controller-0                          1/1     Running   0          11m
+argocd        argocd-applicationset-controller-7c578b5f4d-khqps        1/1     Running   0          11m
+argocd        argocd-dex-server-6d6548f46d-zzs5l                       1/1     Running   0          11m
+argocd        argocd-notifications-controller-65c7876dfd-pmmnn         1/1     Running   0          11m
+argocd        argocd-redis-866bcf475c-hqjmq                            1/1     Running   0          11m
+argocd        argocd-repo-server-b79775fb4-6lxq9                       1/1     Running   0          11m
+argocd        argocd-self-application-controller-0                     1/1     Running   0          10m
+argocd        argocd-self-applicationset-controller-6cf8f6db48-ppbnt   1/1     Running   0          10m
+argocd        argocd-self-dex-server-65c87c95f4-d4nxs                  1/1     Running   0          10m
+argocd        argocd-self-notifications-controller-d8c555d9c-q45fp     1/1     Running   0          10m
+argocd        argocd-self-redis-6569d9d689-6cp4s                       1/1     Running   0          10m
+argocd        argocd-self-repo-server-7fcb5bf5c7-krrw7                 1/1     Running   0          10m
+argocd        argocd-self-server-7b4f578744-sf9fb                      1/1     Running   0          10m
+argocd        argocd-server-7cc7657f99-6zgkm                           1/1     Running   0          11m
+dev           dev-sample-app-78c4c4999f-hh56z                          1/1     Running   0          11m
+kube-system   aws-node-j6vh7                                           2/2     Running   0          13m
+kube-system   aws-node-q5d7h                                           2/2     Running   0          13m
+kube-system   coredns-8966fd9f9-4mjml                                  1/1     Running   0          16m
+kube-system   coredns-8966fd9f9-xmlx5                                  1/1     Running   0          16m
+kube-system   eks-pod-identity-agent-f748r                             1/1     Running   0          13m
+kube-system   eks-pod-identity-agent-zkmhf                             1/1     Running   0          13m
+kube-system   kube-proxy-9qjzp                                         1/1     Running   0          13m
+kube-system   kube-proxy-htmnj                                         1/1     Running   0          13m
+kyverno       kyverno-admission-controller-b5f755d76-hspkg             1/1     Running   0          9m50s
+kyverno       kyverno-background-controller-fbf6dc4b9-2mq9h            1/1     Running   0          9m50s
+kyverno       kyverno-cleanup-controller-c9cc448b4-qdmdg               1/1     Running   0          9m50s
+kyverno       kyverno-reports-controller-758c89b484-mdjlb              1/1     Running   0          9m50s
+staging       staging-sample-app-5bd94b7ff9-d245z                      1/1     Running   0          11m
+staging       staging-sample-app-5bd94b7ff9-mlzkd                      1/1     Running   0          11m
 ```
 
 ---
 
-## 4. Kyverno Policy Verification & Measured Denial Text
-Policy Engine: Kyverno v1.20.0 (Helm chart 3.10.0)
-API: `policies.kyverno.io/v1 ValidatingPolicy`
-Active Policies:
-- `disallow-latest-tag` (validationActions: [Deny])
-- `require-resource-limits` (validationActions: [Deny])
-- `disallow-privileged-containers` (validationActions: [Deny])
+## 3. Dedicated Denial Messages by Policy
 
-### Test 1: Image using ':latest' tag
-Command executed: `kubectl apply -f bad-pod-latest.yaml`
-Captured Denial Text:
+### Disallow Latest Tag Policy Denial
+Tested via pod manifest with resource limits and `:latest` tag:
 ```text
-Error from server: error when creating "/tmp/bad-pod.yaml": admission webhook "vpol.validate.kyverno.svc-fail-finegrained-disallow-latest-tag" denied the request: Policy disallow-latest-tag failed: Using ':latest' tag is not allowed. Images must use a specific pinned tag.
+Error from server: error when creating "/tmp/bad-pod-latest.yaml": admission webhook "vpol.validate.kyverno.svc-fail-finegrained-disallow-latest-tag" denied the request: Policy disallow-latest-tag failed: Using ':latest' tag is not allowed. Images must use a specific pinned tag.
 ```
 
-### Test 2: Missing CPU and Memory Resource Limits
-Command executed: `kubectl apply -f bad-pod-no-limits.yaml`
-Captured Denial Text:
+### Require Resource Limits Policy Denial
+Tested via `kubectl run bad-limits --image=nginx:1.27`:
 ```text
-Error from server: error when creating "/tmp/bad-pod-priv.yaml": admission webhook "vpol.validate.kyverno.svc-fail-finegrained-require-resource-limits" denied the request: Policy require-resource-limits failed: CPU and memory resource limits are required for all containers.
+Error from server: admission webhook "vpol.validate.kyverno.svc-fail-finegrained-require-resource-limits" denied the request: Policy require-resource-limits failed: CPU and memory resource limits are required for all containers.
 ```
 
-### Test 3: Privileged Container (`privileged: true`)
-Command executed: `kubectl apply -f bad-pod-privileged.yaml`
-Captured Denial Text:
+### Disallow Privileged Containers Policy Denial
+Tested via `/tmp/priv.yaml` with pinned image, resource limits, and `privileged: true`:
 ```text
-Error from server: error when creating "/tmp/bad-pod-priv-only.yaml": admission webhook "vpol.validate.kyverno.svc-fail-finegrained-disallow-privileged-containers" denied the request: Policy disallow-privileged-containers failed: Privileged containers are not allowed.
+Error from server: error when creating "/tmp/priv.yaml": admission webhook "vpol.validate.kyverno.svc-fail-finegrained-disallow-privileged-containers" denied the request: Policy disallow-privileged-containers failed: Privileged containers are not allowed.
 ```
