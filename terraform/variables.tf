@@ -4,6 +4,11 @@ variable "region" {
   default     = "ap-south-1"
 }
 
+variable "aws_account_id" {
+  description = "AWS account ID allowed for provisioning"
+  type        = string
+}
+
 variable "cluster_name" {
   description = "Name of the EKS cluster"
   type        = string
