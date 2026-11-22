@@ -6,6 +6,14 @@ A production-style Kubernetes platform on AWS EKS, built with Terraform and mana
 
 My primary production background is operating AWS ECS at scale across mission-critical services. This project applies that same platform thinking and operational discipline to Kubernetes. It is a reference platform I built to show how I would run Kubernetes, and every number here was measured.
 
+## Screenshots
+
+![ArgoCD Applications Overview](docs/images/argocd-applications.png)
+*ArgoCD showing all four applications (argocd-self, dev-sample-app, root-apps, and staging-sample-app) Synced and Healthy after the Phase 2 bootstrap.*
+
+![ArgoCD dev-sample-app Resource Tree](docs/images/argocd-dev-sample-app-tree.png)
+*Resource tree for dev-sample-app showing Healthy and Synced status across Service, Deployment, ReplicaSet, and Pod components.*
+
 ## Measured Results
 
 All metrics below are verified from recorded execution outputs in the evidence directory:
@@ -103,6 +111,9 @@ flowchart TB
 │   │   ├── destroy.log         # Timed destroy log (Phase 2)
 │   │   ├── phase-1-verification.md
 │   │   └── phase-2-verification.md
+│   ├── images/                 # Platform UI screenshots
+│   │   ├── argocd-applications.png
+│   │   └── argocd-dev-sample-app-tree.png
 │   └── cost.md                 # Architecture cost model
 ├── helm/
 │   └── sample-app/             # Pinned NGINX microservice Helm chart
