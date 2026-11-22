@@ -1,0 +1,19 @@
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: disallow-latest-tag
+spec:
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+  matchConditions:
+    - name: exclude-system-namespaces
+      expression: "!['kube-system', 'kyverno', 'argocd'].exists(ns, ns == request.namespace)"
+  validationActions:
+    - Deny
+  validations:
+    - expression: "object.spec.containers.all(c, !c.image.endsWith(':latest') && c.image.contains(':'))"
+      message: "Using ':latest' tag is not allowed. Images must use a specific pinned tag."
