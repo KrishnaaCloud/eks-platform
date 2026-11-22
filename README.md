@@ -1,10 +1,10 @@
 # EKS Platform
 
-A production-style Kubernetes platform on AWS EKS, built with Terraform and managed with GitOps (ArgoCD), with policy guardrails (Kyverno). Rebuilt and destroyed on demand to keep cost near zero.
+A production-style Kubernetes platform on AWS EKS, built with Terraform and managed with GitOps (ArgoCD), with policy guardrails (Kyverno). Rebuilt and destroyed on demand, so nothing runs between sessions.
 
 ## What This Is and Why
 
-My primary production background is operating AWS ECS at scale across mission-critical services. This project applies that same platform thinking and operational discipline to Kubernetes. Rather than claiming production Kubernetes experience, this platform demonstrates the architecture, infrastructure as code, GitOps delivery, policy enforcement, and operational controls required to run Kubernetes responsibly in an enterprise environment.
+My primary production background is operating AWS ECS at scale across mission-critical services. This project applies that same platform thinking and operational discipline to Kubernetes. It is a reference platform I built to show how I would run Kubernetes, and every number here was measured.
 
 ## Measured Results
 
@@ -83,7 +83,7 @@ flowchart TB
 ```text
 .
 ├── .github/
-│   └── workflows/              # CI workflows (planned Phase 3)
+│   └── workflows/              # CI workflows (planned Phase 5)
 ├── argocd/
 │   ├── root-app.yaml           # Root application for GitOps app-of-apps bootstrap
 │   └── apps/                   # Application definitions (self, dev, staging)
@@ -183,6 +183,8 @@ time terraform destroy -auto-approve 2>&1 | tee ../docs/evidence/destroy.log
 This platform is deliberately scoped as an engineering portfolio reference rather than an active production deployment. The following gaps are recognized:
 - Local Terraform state: State resides on the local filesystem without a remote S3 backend or DynamoDB state locking.
 - Single operator: Access and infrastructure changes are executed by a single operator without multi-user role separation.
+- Manual GitOps and policy bootstrap: GitOps and policy bootstrap is manual helm and kubectl, not automated in Terraform.
+- Policy management outside GitOps: Kyverno policies are not yet managed by ArgoCD.
 - No CI plan or apply pipeline: Infrastructure execution is performed directly from the CLI rather than through automated pipeline checks and pull request automation.
 - No monitoring or SLOs: Real-time telemetry, dashboarding (Prometheus and Grafana), alerting rules, and error budgets are not yet deployed.
 - No multi-region redundancy: Networking and compute are deployed exclusively in AWS region ap-south-1.
@@ -192,18 +194,18 @@ This platform is deliberately scoped as an engineering portfolio reference rathe
 
 ## Roadmap
 
-- Phase 3: CI/CD Automation with OIDC and Remote State
-  - Migrate Terraform state to Amazon S3 with DynamoDB state locking.
-  - Establish GitHub Actions CI pipelines using AWS IAM OIDC federation (eliminating static credentials).
-  - Automate validation, linting, policy conformance checks, and plan generation on pull requests.
-- Phase 4: Observability, Monitoring, and SLOs
+- Phase 3: Observability, Monitoring, and SLOs
   - Deploy kube-prometheus-stack (Prometheus, Alertmanager, Grafana).
   - Define explicit service-level indicators (SLIs), service-level objectives (SLOs), and error budgets for workloads.
   - Implement alert notifications for node resource saturation and admission webhook latency.
-- Phase 5: Failure Drills and Resilience Testing
+- Phase 4: Failure Drills and Resilience Testing
   - Conduct node drain and termination drills to evaluate Pod Disruption Budgets and pod rescheduling behavior.
   - Execute admission controller failure tests to assess cluster behavior during webhook unavailability.
   - Measure platform recovery time from complete cold start.
+- Phase 5: CI/CD Automation with OIDC and Remote State
+  - Migrate Terraform state to Amazon S3 with DynamoDB state locking.
+  - Establish GitHub Actions CI pipelines using AWS IAM OIDC federation (eliminating static credentials).
+  - Automate validation, linting, policy conformance checks, and plan generation on pull requests.
 
 ## Architectural Decision Records (ADRs)
 
