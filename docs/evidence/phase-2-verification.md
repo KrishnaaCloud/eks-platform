@@ -1,18 +1,27 @@
 # Phase 2: GitOps Platform Verification Evidence
 
-Date & Time: 2026-11-22T16:09:15+05:30 (10:39:15 UTC)
+Date & Time: 2026-11-22T16:21:00+05:30 (10:51:00 UTC)
 Environment: AWS Personal Sandbox (Region: ap-south-1)
 Target Branch: phase-2-gitops
 
 ---
 
-## 1. Measured Cluster Apply Timing
+## 1. Measured Cluster Timing
+### Apply Timing
 Source: `time terraform apply -no-color tfplan 2>&1 | tee docs/evidence/apply.log`
 - Start Time: 2026-11-22T15:43:11+05:30
 - Total Real Time: 11m 26.615s (686.615 seconds)
 - User Time: 0m 4.503s
 - Sys Time: 0m 0.604s
 - Resources Provisioned: 58 added, 0 changed, 0 destroyed.
+
+### Destroy Timing
+Source: `time terraform destroy -auto-approve -no-color 2>&1 | tee docs/evidence/destroy.log`
+- Start Time: 2026-11-22T16:10:44+05:30
+- Total Real Time: 10m 30.480s (630.480 seconds)
+- User Time: 0m 7.694s
+- Sys Time: 0m 0.933s
+- Resources Decommissioned: 58 destroyed.
 
 ---
 
@@ -103,3 +112,14 @@ Demonstrated by applying `/tmp/priv.yaml` (configured with a pinned image, valid
 ```text
 Error from server: error when creating "/tmp/priv.yaml": admission webhook "vpol.validate.kyverno.svc-fail-finegrained-disallow-privileged-containers" denied the request: Policy disallow-privileged-containers failed: Privileged containers are not allowed.
 ```
+
+---
+
+## 4. Post-Destroy Residual Check (ap-south-1)
+Timestamp: 2026-11-22T16:21:35+05:30
+- EKS Clusters: `aws eks list-clusters` -> `{"clusters": []}`
+- NAT Gateways: `aws ec2 describe-nat-gateways --filter Name=state,Values=pending,available` -> `{"NatGateways": []}`
+- EBS Volumes: `aws ec2 describe-volumes --filters Name=status,Values=available` -> `{"Volumes": []}`
+- Load Balancers: `aws elbv2 describe-load-balancers` -> `{"LoadBalancers": []}`
+- Elastic IPs: `aws ec2 describe-addresses` -> `{"Addresses": []}`
+- EC2 Instances: `aws ec2 describe-instances --filters Name=instance-state-name,Values=pending,running` -> `[]`

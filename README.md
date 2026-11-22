@@ -8,16 +8,19 @@ A production-style Kubernetes reference platform on AWS EKS provisioned with Ter
 
 | Capability | Scope / Components | Status |
 | :--- | :--- | :--- |
-| Cluster & Infrastructure | Dedicated VPC (2 AZs) and EKS v1.37 via Terraform | Done (Phase 1) |
-| CI/CD & Governance | OIDC-federated GitHub Actions CI, Pod Identity, Kyverno | Planned |
-| GitOps & Delivery | Helm application packaging, ArgoCD app-of-apps | Planned |
-| Observability | Prometheus, Grafana, alerts, 2 SLO definitions | Planned |
+| Cluster & Infrastructure | Dedicated VPC (2 AZs) and EKS v1.37 via Terraform | Done (Phase 1, apply: 11m 26s) |
+| GitOps & Delivery | Helm application packaging, ArgoCD app-of-apps (dev & staging) | Done (Phase 2) |
+| Policy & Governance | Kyverno admission guardrails (no latest tag, resource limits, no privileged) | Done (Phase 2) |
+| CI/CD Automation | OIDC-federated GitHub Actions CI, Pod Identity | Planned (Phase 3) |
+| Observability | Prometheus, Grafana, alerts, 2 SLO definitions | Planned (Phase 4) |
 
-## Architecture Highlights (Phase 1)
+## Architecture Highlights (Phase 1 & Phase 2)
 - **VPC & Networking**: Dedicated VPC with 2 Availability Zones in ap-south-1, isolated public and private subnets, and a single shared NAT Gateway for cost-conscious egress.
 - **EKS Cluster**: Kubernetes v1.37 provisioned via Terraform AWS EKS module v20, with endpoint public access strictly limited to operator CIDR.
 - **Worker Compute**: Managed Node Group utilizing EC2 Spot instances (t3.large) across private subnets.
 - **Add-ons**: CoreDNS, kube-proxy, VPC CNI, and EKS Pod Identity Agent.
+- **GitOps Delivery**: ArgoCD v3.6.2 deployed via Helm in an app-of-apps architecture managing dev and staging microservice workloads alongside self-managed ArgoCD configuration.
+- **Policy Guardrails**: Kyverno v1.20 admission controllers enforcing CEL-based ValidatingPolicies (disallow :latest tag, require resource limits, block privileged containers).
 - **Security & Governance**: KMS envelope encryption, dedicated cluster and node security groups, IAM roles created by the EKS module using AWS managed policies.
 
 ## Architectural Decision Records (ADRs)
@@ -26,3 +29,4 @@ A production-style Kubernetes reference platform on AWS EKS provisioned with Ter
 - [ADR 0003: Spot Instances for Worker Nodes](docs/adr/0003-spot-instances-for-worker-nodes.md)
 - [ADR 0004: Restricted Public API Endpoint](docs/adr/0004-restricted-public-api-endpoint.md)
 - [ADR 0005: Kubernetes Version Selection](docs/adr/0005-kubernetes-version-selection.md)
+- [ADR 0006: EKS vs ECS and Local State](docs/adr/0006-ecs-vs-eks-and-local-state.md)
