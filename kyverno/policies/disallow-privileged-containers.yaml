@@ -1,40 +1,19 @@
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
 metadata:
   name: disallow-privileged-containers
-  annotations:
-    policies.kyverno.io/title: Disallow Privileged Containers
-    policies.kyverno.io/category: Pod Security
-    policies.kyverno.io/severity: high
-    policies.kyverno.io/description: >-
-      Privileged containers have root capabilities on the host and must be blocked.
 spec:
-  validationFailureAction: Audit
-  background: true
-  rules:
-    - name: validate-privileged
-      match:
-        any:
-          - resources:
-              kinds:
-                - Pod
-      exclude:
-        any:
-          - resources:
-              namespaces:
-                - kube-system
-                - kyverno
-                - argocd
-      validate:
-        message: "Privileged containers are not allowed."
-        pattern:
-          spec:
-            =(ephemeralContainers):
-              - =(securityContext):
-                  =(privileged): "false"
-            =(initContainers):
-              - =(securityContext):
-                  =(privileged): "false"
-            containers:
-              - =(securityContext):
-                  =(privileged): "false"
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+  matchConditions:
+    - name: exclude-system-namespaces
+      expression: "!['kube-system', 'kyverno', 'argocd'].exists(ns, ns == request.namespace)"
+  validationActions:
+    - Deny
+  validations:
+    - expression: "object.spec.containers.all(c, !has(c.securityContext) || !has(c.securityContext.privileged) || c.securityContext.privileged == false)"
+      message: "Privileged containers are not allowed."
