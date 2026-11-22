@@ -1,6 +1,6 @@
 # Phase 2: GitOps Platform Verification Evidence
 
-Date & Time: 2026-11-22T16:07:35+05:30 (10:37:35 UTC)
+Date & Time: 2026-11-22T16:09:15+05:30 (10:39:15 UTC)
 Environment: AWS Personal Sandbox (Region: ap-south-1)
 Target Branch: phase-2-gitops
 
@@ -24,9 +24,14 @@ arn:aws:eks:ap-south-1:<REDACTED_ACCOUNT_ID>:cluster/eks-platform
 
 $ kubectl run bad-test --image=nginx:latest
 Error from server: admission webhook "vpol.validate.kyverno.svc-fail-finegrained-require-resource-limits" denied the request: Policy require-resource-limits failed: CPU and memory resource limits are required for all containers.
+Note: kubectl run without flags does not set container resource limits, causing require-resource-limits to evaluate and deny admission before image tag validation.
 
 $ kubectl run bad-limits --image=nginx:1.27
 Error from server: admission webhook "vpol.validate.kyverno.svc-fail-finegrained-require-resource-limits" denied the request: Policy require-resource-limits failed: CPU and memory resource limits are required for all containers.
+
+$ kubectl apply -f /tmp/bad-latest.yaml
+Error from server: error when creating "/tmp/bad-latest.yaml": admission webhook "vpol.validate.kyverno.svc-fail-finegrained-disallow-latest-tag" denied the request: Policy disallow-latest-tag failed: Using ':latest' tag is not allowed. Images must use a specific pinned tag.
+Note: Applied manifest specifying image nginx:latest WITH cpu/memory requests and limits and no privileged flag, isolating and verifying the disallow-latest-tag policy.
 
 $ kubectl apply -f /tmp/priv.yaml
 Error from server: error when creating "/tmp/priv.yaml": admission webhook "vpol.validate.kyverno.svc-fail-finegrained-disallow-privileged-containers" denied the request: Policy disallow-privileged-containers failed: Privileged containers are not allowed.
@@ -81,20 +86,20 @@ staging       staging-sample-app-5bd94b7ff9-mlzkd                      1/1     R
 
 ## 3. Dedicated Denial Messages by Policy
 
-### Disallow Latest Tag Policy Denial
-Tested via pod manifest with resource limits and `:latest` tag:
+### 1. Disallow Latest Tag Policy Denial
+Demonstrated by applying `/tmp/bad-latest.yaml` (configured with `image: nginx:latest`, valid CPU/memory limits, unprivileged):
 ```text
-Error from server: error when creating "/tmp/bad-pod-latest.yaml": admission webhook "vpol.validate.kyverno.svc-fail-finegrained-disallow-latest-tag" denied the request: Policy disallow-latest-tag failed: Using ':latest' tag is not allowed. Images must use a specific pinned tag.
+Error from server: error when creating "/tmp/bad-latest.yaml": admission webhook "vpol.validate.kyverno.svc-fail-finegrained-disallow-latest-tag" denied the request: Policy disallow-latest-tag failed: Using ':latest' tag is not allowed. Images must use a specific pinned tag.
 ```
 
-### Require Resource Limits Policy Denial
-Tested via `kubectl run bad-limits --image=nginx:1.27`:
+### 2. Require Resource Limits Policy Denial
+Demonstrated by `kubectl run bad-limits --image=nginx:1.27` (missing CPU/memory resource limits):
 ```text
 Error from server: admission webhook "vpol.validate.kyverno.svc-fail-finegrained-require-resource-limits" denied the request: Policy require-resource-limits failed: CPU and memory resource limits are required for all containers.
 ```
 
-### Disallow Privileged Containers Policy Denial
-Tested via `/tmp/priv.yaml` with pinned image, resource limits, and `privileged: true`:
+### 3. Disallow Privileged Containers Policy Denial
+Demonstrated by applying `/tmp/priv.yaml` (configured with a pinned image, valid CPU/memory limits, and `privileged: true`):
 ```text
 Error from server: error when creating "/tmp/priv.yaml": admission webhook "vpol.validate.kyverno.svc-fail-finegrained-disallow-privileged-containers" denied the request: Policy disallow-privileged-containers failed: Privileged containers are not allowed.
 ```
