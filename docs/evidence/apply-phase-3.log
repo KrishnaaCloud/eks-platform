@@ -1,0 +1,213 @@
+module.eks.aws_cloudwatch_log_group.this[0]: Creating...
+module.eks.aws_iam_policy.custom[0]: Creating...
+module.vpc.aws_vpc.this[0]: Creating...
+module.eks.aws_iam_role.this[0]: Creating...
+module.eks.aws_cloudwatch_log_group.this[0]: Creation complete after 0s [id=/aws/eks/eks-platform/cluster]
+module.eks.aws_iam_policy.custom[0]: Creation complete after 2s [id=arn:aws:iam::<REDACTED_ACCOUNT_ID>:policy/eks-platform-cluster-20261123103909632000000002]
+module.eks.aws_iam_role.this[0]: Creation complete after 2s [id=eks-platform-cluster-20261123103909631800000001]
+module.eks.aws_iam_role_policy_attachment.custom[0]: Creating...
+module.eks.aws_iam_role_policy_attachment.this["AmazonEKSVPCResourceController"]: Creating...
+module.eks.aws_iam_role_policy_attachment.this["AmazonEKSClusterPolicy"]: Creating...
+module.eks.module.kms.data.aws_iam_policy_document.this[0]: Reading...
+module.eks.module.kms.data.aws_iam_policy_document.this[0]: Read complete after 0s [id=4238740216]
+module.eks.module.kms.aws_kms_key.this[0]: Creating...
+module.eks.aws_iam_role_policy_attachment.custom[0]: Creation complete after 1s [id=eks-platform-cluster-20261123103909631800000001-20261123103912573000000005]
+module.eks.aws_iam_role_policy_attachment.this["AmazonEKSVPCResourceController"]: Creation complete after 1s [id=eks-platform-cluster-20261123103909631800000001-20261123103912552700000003]
+module.eks.aws_iam_role_policy_attachment.this["AmazonEKSClusterPolicy"]: Creation complete after 1s [id=eks-platform-cluster-20261123103909631800000001-20261123103912566000000004]
+module.vpc.aws_vpc.this[0]: Still creating... [10s elapsed]
+module.vpc.aws_vpc.this[0]: Creation complete after 12s [id=vpc-021252879fe4ebca5]
+module.vpc.aws_default_security_group.this[0]: Creating...
+module.vpc.aws_route_table.private[0]: Creating...
+module.vpc.aws_subnet.public[1]: Creating...
+module.vpc.aws_default_route_table.default[0]: Creating...
+module.eks.aws_security_group.cluster[0]: Creating...
+module.vpc.aws_route_table.public[0]: Creating...
+module.vpc.aws_subnet.private[1]: Creating...
+module.vpc.aws_subnet.public[0]: Creating...
+module.vpc.aws_default_network_acl.this[0]: Creating...
+module.vpc.aws_default_route_table.default[0]: Creation complete after 0s [id=rtb-0aa2a60115300b3c3]
+module.vpc.aws_subnet.private[0]: Creating...
+module.vpc.aws_route_table.private[0]: Creation complete after 0s [id=rtb-0b2ddf7ca3dfba5f7]
+module.eks.aws_security_group.node[0]: Creating...
+module.eks.module.kms.aws_kms_key.this[0]: Still creating... [10s elapsed]
+module.vpc.aws_subnet.public[0]: Creation complete after 0s [id=subnet-0b730efc64a787044]
+module.vpc.aws_internet_gateway.this[0]: Creating...
+module.vpc.aws_route_table.public[0]: Creation complete after 0s [id=rtb-0be435d0a0e6cf35d]
+module.vpc.aws_internet_gateway.this[0]: Creation complete after 1s [id=igw-052b4faa09da253a1]
+module.vpc.aws_route.public_internet_gateway[0]: Creating...
+module.vpc.aws_eip.nat[0]: Creating...
+module.vpc.aws_subnet.private[0]: Creation complete after 1s [id=subnet-0313492c90cbfb712]
+module.vpc.aws_default_network_acl.this[0]: Creation complete after 1s [id=acl-077462c8fb3b5e3b6]
+module.vpc.aws_default_security_group.this[0]: Creation complete after 1s [id=sg-098b5172dd3c22ad7]
+module.vpc.aws_route.public_internet_gateway[0]: Creation complete after 1s [id=r-rtb-0be435d0a0e6cf35d1080289494]
+module.eks.aws_security_group.cluster[0]: Creation complete after 2s [id=sg-0a7da85868cc50900]
+module.eks.aws_security_group.node[0]: Creation complete after 2s [id=sg-0a49bf6d0ab25723c]
+module.eks.aws_security_group_rule.node["ingress_self_coredns_tcp"]: Creating...
+module.eks.aws_security_group_rule.node["ingress_self_coredns_udp"]: Creating...
+module.eks.aws_security_group_rule.node["ingress_nodes_ephemeral"]: Creating...
+module.eks.aws_security_group_rule.node["ingress_cluster_6443_webhook"]: Creating...
+module.eks.aws_security_group_rule.node["ingress_cluster_8443_webhook"]: Creating...
+module.eks.aws_security_group_rule.node["ingress_cluster_443"]: Creating...
+module.vpc.aws_eip.nat[0]: Creation complete after 1s [id=eipalloc-09f4ae35cff2bc65c]
+module.eks.aws_security_group_rule.node["ingress_cluster_kubelet"]: Creating...
+module.eks.aws_security_group_rule.node["ingress_self_coredns_tcp"]: Creation complete after 0s [id=sgrule-3691383978]
+module.eks.aws_security_group_rule.node["ingress_cluster_4443_webhook"]: Creating...
+module.vpc.aws_subnet.private[1]: Creation complete after 3s [id=subnet-0361f153ada61a367]
+module.eks.aws_security_group_rule.node["ingress_cluster_9443_webhook"]: Creating...
+module.eks.aws_security_group_rule.node["ingress_cluster_8443_webhook"]: Creation complete after 1s [id=sgrule-2586813903]
+module.eks.aws_security_group_rule.node["egress_all"]: Creating...
+module.vpc.aws_subnet.public[1]: Creation complete after 3s [id=subnet-00fc0d76a9fcef467]
+module.eks.aws_security_group_rule.cluster["ingress_nodes_443"]: Creating...
+module.eks.aws_security_group_rule.node["ingress_self_coredns_udp"]: Creation complete after 2s [id=sgrule-2019143493]
+module.vpc.aws_route_table_association.private[0]: Creating...
+module.eks.aws_security_group_rule.cluster["ingress_nodes_443"]: Creation complete after 1s [id=sgrule-1200866196]
+module.vpc.aws_route_table_association.private[1]: Creating...
+module.vpc.aws_route_table_association.private[1]: Creation complete after 0s [id=rtbassoc-06be7f040ef2d7719]
+module.vpc.aws_route_table_association.public[1]: Creating...
+module.vpc.aws_route_table_association.private[0]: Creation complete after 0s [id=rtbassoc-0b0da7dbc5abd0cad]
+module.vpc.aws_route_table_association.public[0]: Creating...
+module.eks.aws_security_group_rule.node["ingress_cluster_443"]: Creation complete after 2s [id=sgrule-1847572746]
+module.vpc.aws_nat_gateway.this[0]: Creating...
+module.vpc.aws_route_table_association.public[1]: Creation complete after 0s [id=rtbassoc-089082e2c41ced4dc]
+module.eks.module.eks_managed_node_group["default"].aws_iam_role.this[0]: Creating...
+module.vpc.aws_route_table_association.public[0]: Creation complete after 1s [id=rtbassoc-05cbf4935039cff34]
+module.eks.aws_security_group_rule.node["ingress_nodes_ephemeral"]: Creation complete after 3s [id=sgrule-2632858555]
+module.eks.aws_security_group_rule.node["ingress_cluster_6443_webhook"]: Creation complete after 4s [id=sgrule-2306054638]
+module.eks.module.eks_managed_node_group["default"].aws_iam_role.this[0]: Creation complete after 2s [id=default-eks-node-group-2026112310392648330000000b]
+module.eks.module.eks_managed_node_group["default"].aws_iam_role_policy_attachment.this["AmazonEKS_CNI_Policy"]: Creating...
+module.eks.module.eks_managed_node_group["default"].aws_iam_role_policy_attachment.this["AmazonEKSWorkerNodePolicy"]: Creating...
+module.eks.module.eks_managed_node_group["default"].aws_iam_role_policy_attachment.this["AmazonEC2ContainerRegistryReadOnly"]: Creating...
+module.eks.aws_security_group_rule.node["ingress_cluster_kubelet"]: Creation complete after 4s [id=sgrule-250005663]
+module.eks.module.eks_managed_node_group["default"].aws_iam_role_policy_attachment.this["AmazonEKSWorkerNodePolicy"]: Creation complete after 0s [id=default-eks-node-group-2026112310392648330000000b-2026112310392797800000000c]
+module.eks.module.eks_managed_node_group["default"].aws_iam_role_policy_attachment.this["AmazonEKS_CNI_Policy"]: Creation complete after 0s [id=default-eks-node-group-2026112310392648330000000b-2026112310392802910000000d]
+module.eks.module.eks_managed_node_group["default"].aws_iam_role_policy_attachment.this["AmazonEC2ContainerRegistryReadOnly"]: Creation complete after 0s [id=default-eks-node-group-2026112310392648330000000b-2026112310392803840000000e]
+module.eks.aws_security_group_rule.node["ingress_cluster_4443_webhook"]: Creation complete after 5s [id=sgrule-1077018232]
+module.eks.aws_security_group_rule.node["ingress_cluster_9443_webhook"]: Creation complete after 4s [id=sgrule-4270757380]
+module.eks.aws_security_group_rule.node["egress_all"]: Creation complete after 5s [id=sgrule-4201461688]
+module.eks.module.kms.aws_kms_key.this[0]: Still creating... [20s elapsed]
+module.eks.module.kms.aws_kms_key.this[0]: Creation complete after 22s [id=95ab569a-d05d-4101-ad55-05801ca775b0]
+module.eks.module.kms.aws_kms_alias.this["cluster"]: Creating...
+module.eks.aws_iam_policy.cluster_encryption[0]: Creating...
+module.eks.aws_eks_cluster.this[0]: Creating...
+module.eks.module.kms.aws_kms_alias.this["cluster"]: Creation complete after 0s [id=alias/eks/eks-platform]
+module.eks.aws_iam_policy.cluster_encryption[0]: Creation complete after 1s [id=arn:aws:iam::<REDACTED_ACCOUNT_ID>:policy/eks-platform-cluster-ClusterEncryption2026112310393361230000000f]
+module.eks.aws_iam_role_policy_attachment.cluster_encryption[0]: Creating...
+module.eks.aws_iam_role_policy_attachment.cluster_encryption[0]: Creation complete after 0s [id=eks-platform-cluster-20261123103909631800000001-20261123103934908800000010]
+module.vpc.aws_nat_gateway.this[0]: Still creating... [10s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [10s elapsed]
+module.vpc.aws_nat_gateway.this[0]: Still creating... [20s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [20s elapsed]
+module.vpc.aws_nat_gateway.this[0]: Still creating... [30s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [30s elapsed]
+module.vpc.aws_nat_gateway.this[0]: Still creating... [40s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [40s elapsed]
+module.vpc.aws_nat_gateway.this[0]: Still creating... [50s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [50s elapsed]
+module.vpc.aws_nat_gateway.this[0]: Still creating... [1m0s elapsed]
+module.vpc.aws_nat_gateway.this[0]: Creation complete after 1m4s [id=nat-0cdf16e73aace3825]
+module.vpc.aws_route.private_nat_gateway[0]: Creating...
+module.vpc.aws_route.private_nat_gateway[0]: Creation complete after 1s [id=r-rtb-0b2ddf7ca3dfba5f71080289494]
+module.eks.aws_eks_cluster.this[0]: Still creating... [1m0s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [1m10s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [1m20s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [1m30s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [1m40s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [1m50s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [2m0s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [2m10s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [2m20s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [2m30s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [2m40s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [2m50s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [3m0s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [3m10s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [3m20s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [3m30s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [3m40s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [3m50s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [4m0s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [4m10s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [4m20s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [4m30s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [4m40s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [4m50s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [5m0s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [5m10s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [5m20s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [5m30s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [5m40s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [5m50s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [6m0s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [6m10s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [6m20s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [6m30s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [6m40s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [6m50s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [7m0s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [7m10s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [7m20s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [7m30s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [7m40s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [7m50s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [8m0s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [8m10s elapsed]
+module.eks.aws_eks_cluster.this[0]: Still creating... [8m20s elapsed]
+module.eks.aws_eks_cluster.this[0]: Creation complete after 8m25s [id=eks-platform]
+module.eks.data.aws_eks_addon_version.this["coredns"]: Reading...
+module.eks.data.aws_eks_addon_version.this["vpc-cni"]: Reading...
+module.eks.data.aws_eks_addon_version.this["kube-proxy"]: Reading...
+module.eks.data.aws_eks_addon_version.this["eks-pod-identity-agent"]: Reading...
+module.eks.data.tls_certificate.this[0]: Reading...
+module.eks.aws_eks_access_entry.this["cluster_creator"]: Creating...
+module.eks.time_sleep.this[0]: Creating...
+module.eks.data.aws_eks_addon_version.this["eks-pod-identity-agent"]: Read complete after 1s [id=eks-pod-identity-agent]
+module.eks.data.aws_eks_addon_version.this["vpc-cni"]: Read complete after 1s [id=vpc-cni]
+module.eks.data.tls_certificate.this[0]: Read complete after 1s [id=1e3a331631939a1ae4a625cd4244a4963dabbfa2]
+module.eks.aws_iam_openid_connect_provider.oidc_provider[0]: Creating...
+module.eks.data.aws_eks_addon_version.this["kube-proxy"]: Read complete after 1s [id=kube-proxy]
+module.eks.data.aws_eks_addon_version.this["coredns"]: Read complete after 1s [id=coredns]
+module.eks.aws_eks_access_entry.this["cluster_creator"]: Creation complete after 1s [id=eks-platform:arn:aws:iam::<REDACTED_ACCOUNT_ID>:role/aws-reserved/sso.amazonaws.com/ap-south-1/AWSReservedSSO_AdministratorAccess_3c590fa71bdb0337]
+module.eks.aws_eks_access_policy_association.this["cluster_creator_admin"]: Creating...
+module.eks.aws_eks_access_policy_association.this["cluster_creator_admin"]: Creation complete after 1s [id=eks-platform#arn:aws:iam::<REDACTED_ACCOUNT_ID>:role/aws-reserved/sso.amazonaws.com/ap-south-1/AWSReservedSSO_AdministratorAccess_3c590fa71bdb0337#arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy]
+module.eks.aws_iam_openid_connect_provider.oidc_provider[0]: Creation complete after 1s [id=arn:aws:iam::<REDACTED_ACCOUNT_ID>:oidc-provider/oidc.eks.ap-south-1.amazonaws.com/id/BA2DB3809288AD972058BCCA0DA68CBE]
+module.eks.time_sleep.this[0]: Still creating... [10s elapsed]
+module.eks.time_sleep.this[0]: Still creating... [20s elapsed]
+module.eks.time_sleep.this[0]: Still creating... [30s elapsed]
+module.eks.time_sleep.this[0]: Creation complete after 30s [id=2026-11-23T10:48:29Z]
+module.eks.module.eks_managed_node_group["default"].module.user_data.null_resource.validate_cluster_service_cidr: Creating...
+module.eks.module.eks_managed_node_group["default"].module.user_data.null_resource.validate_cluster_service_cidr: Creation complete after 0s [id=1345585736783820339]
+module.eks.module.eks_managed_node_group["default"].aws_launch_template.this[0]: Creating...
+module.eks.module.eks_managed_node_group["default"].aws_launch_template.this[0]: Creation complete after 6s [id=lt-076b59f0c41348a5d]
+module.eks.module.eks_managed_node_group["default"].aws_eks_node_group.this[0]: Creating...
+module.eks.module.eks_managed_node_group["default"].aws_eks_node_group.this[0]: Still creating... [10s elapsed]
+module.eks.module.eks_managed_node_group["default"].aws_eks_node_group.this[0]: Still creating... [20s elapsed]
+module.eks.module.eks_managed_node_group["default"].aws_eks_node_group.this[0]: Still creating... [30s elapsed]
+module.eks.module.eks_managed_node_group["default"].aws_eks_node_group.this[0]: Still creating... [40s elapsed]
+module.eks.module.eks_managed_node_group["default"].aws_eks_node_group.this[0]: Still creating... [50s elapsed]
+module.eks.module.eks_managed_node_group["default"].aws_eks_node_group.this[0]: Still creating... [1m0s elapsed]
+module.eks.module.eks_managed_node_group["default"].aws_eks_node_group.this[0]: Still creating... [1m10s elapsed]
+module.eks.module.eks_managed_node_group["default"].aws_eks_node_group.this[0]: Still creating... [1m20s elapsed]
+module.eks.module.eks_managed_node_group["default"].aws_eks_node_group.this[0]: Still creating... [1m30s elapsed]
+module.eks.module.eks_managed_node_group["default"].aws_eks_node_group.this[0]: Still creating... [1m40s elapsed]
+module.eks.module.eks_managed_node_group["default"].aws_eks_node_group.this[0]: Creation complete after 1m48s [id=eks-platform:default-20261123104835601800000013]
+module.eks.aws_eks_addon.this["vpc-cni"]: Creating...
+module.eks.aws_eks_addon.this["eks-pod-identity-agent"]: Creating...
+module.eks.aws_eks_addon.this["coredns"]: Creating...
+module.eks.aws_eks_addon.this["kube-proxy"]: Creating...
+module.eks.aws_eks_addon.this["kube-proxy"]: Creation complete after 8s [id=eks-platform:kube-proxy]
+module.eks.aws_eks_addon.this["eks-pod-identity-agent"]: Still creating... [10s elapsed]
+module.eks.aws_eks_addon.this["coredns"]: Still creating... [10s elapsed]
+module.eks.aws_eks_addon.this["vpc-cni"]: Still creating... [10s elapsed]
+module.eks.aws_eks_addon.this["coredns"]: Creation complete after 14s [id=eks-platform:coredns]
+module.eks.aws_eks_addon.this["vpc-cni"]: Still creating... [20s elapsed]
+module.eks.aws_eks_addon.this["eks-pod-identity-agent"]: Still creating... [20s elapsed]
+module.eks.aws_eks_addon.this["eks-pod-identity-agent"]: Creation complete after 24s [id=eks-platform:eks-pod-identity-agent]
+module.eks.aws_eks_addon.this["vpc-cni"]: Still creating... [30s elapsed]
+module.eks.aws_eks_addon.this["vpc-cni"]: Creation complete after 34s [id=eks-platform:vpc-cni]
+
+Apply complete! Resources: 58 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+cluster_name = "eks-platform"
+kubeconfig_command = "aws eks update-kubeconfig --name eks-platform --region ap-south-1 --profile personal-sandbox"

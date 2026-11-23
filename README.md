@@ -20,13 +20,14 @@ All metrics below are verified from recorded execution outputs in the evidence d
 
 | Metric | Measured Value | Verification Source |
 | :--- | :--- | :--- |
-| Terraform resources | [58](docs/evidence/apply.log) resources provisioned | [apply.log](docs/evidence/apply.log) |
-| Cluster build (apply) | [11m 26s](docs/evidence/apply.log) (686.6s) | [apply.log](docs/evidence/apply.log) |
-| Cluster teardown (destroy) | [11m 33s](docs/evidence/phase-1-verification.md#timings) (Phase 1), [10m 30s](docs/evidence/destroy.log) (Phase 2) | [phase-1-verification.md](docs/evidence/phase-1-verification.md#timings) / [destroy.log](docs/evidence/destroy.log) |
+| Terraform resources | [59](docs/evidence/phase-3-verification.md#1-measured-cluster-timing) resources provisioned (Phase 1 and 2 had 58; Phase 3 added 1 node security group rule for intra-cluster traffic) | [phase-3-verification.md](docs/evidence/phase-3-verification.md#1-measured-cluster-timing) |
+| Cluster build (apply) | [11m 26s](docs/evidence/apply-phase-2.log) (Phase 2), [11m 52s](docs/evidence/apply-phase-3.log) (Phase 3) | [apply-phase-2.log](docs/evidence/apply-phase-2.log) / [apply-phase-3.log](docs/evidence/apply-phase-3.log) |
+| Cluster teardown (destroy) | [11m 33s](docs/evidence/phase-1-verification.md#timings) (Phase 1), [10m 30s](docs/evidence/destroy-phase-2.log) (Phase 2), [11m 07s](docs/evidence/destroy-phase-3.log) (Phase 3) | [phase-1-verification.md](docs/evidence/phase-1-verification.md#timings) / [destroy-phase-2.log](docs/evidence/destroy-phase-2.log) / [destroy-phase-3.log](docs/evidence/destroy-phase-3.log) |
 | Kubernetes version and nodes | [1.37.1](docs/evidence/phase-1-verification.md#1-node-status-kubectl-get-nodes--o-wide), [2](docs/evidence/phase-1-verification.md#1-node-status-kubectl-get-nodes--o-wide) nodes Ready | [phase-1-verification.md](docs/evidence/phase-1-verification.md#1-node-status-kubectl-get-nodes--o-wide) |
-| Pods running after bootstrap | [29](docs/evidence/phase-2-verification.md#2-interactive-terminal-verification-session) pods Running | [phase-2-verification.md](docs/evidence/phase-2-verification.md#2-interactive-terminal-verification-session) |
-| ArgoCD applications | [4](docs/evidence/phase-2-verification.md#2-interactive-terminal-verification-session) applications (all Synced and Healthy) | [phase-2-verification.md](docs/evidence/phase-2-verification.md#2-interactive-terminal-verification-session) |
-| Kyverno policies enforced | [3](docs/evidence/phase-2-verification.md#3-dedicated-denial-messages-by-policy) policies, each verified by admission denial | [phase-2-verification.md](docs/evidence/phase-2-verification.md#3-dedicated-denial-messages-by-policy) |
+| Pods running after bootstrap | [37](docs/evidence/phase-3-verification.md#deployed-workloads--system-pods) pods Running across 6 namespaces | [phase-3-verification.md](docs/evidence/phase-3-verification.md#deployed-workloads--system-pods) |
+| ArgoCD applications | [5](docs/evidence/phase-3-verification.md#gitops-application-state-argocd) applications (all Synced and Healthy) | [phase-3-verification.md](docs/evidence/phase-3-verification.md#gitops-application-state-argocd) |
+| Kyverno policies enforced | [3](docs/evidence/phase-2-verification.md#3-dedicated-denial-messages-by-policy) policies, each verified by admission denial (enforced on application namespaces; system and monitoring namespaces are exempt) | [phase-2-verification.md](docs/evidence/phase-2-verification.md#3-dedicated-denial-messages-by-policy) |
+| Service Level Objectives (SLOs) | [2](docs/slo.md) SLOs (99% availability, 95% latency <50ms) with multi-window burn rate alerts (windows shortened for demonstration; standard values would be 1h/5m for fast burn and 6h/30m for slow burn) | [slo.md](docs/slo.md) |
 
 ## Architecture
 
@@ -72,6 +73,13 @@ flowchart TB
                 subgraph StagingNS["Namespace: staging"]
                     StagingApp["Sample App (Staging Overlay, 2 Replicas)"]
                 end
+
+                subgraph MonitoringNS["Namespace: monitoring"]
+                    direction TB
+                    Prometheus["Prometheus & Alertmanager<br/>Multi-Window Burn Rate Alerts"]
+                    Grafana["Grafana Dashboards<br/>Automated ConfigMap Sidecar"]
+                    Blackbox["Blackbox Exporter<br/>Synthetic HTTP Probing"]
+                end
             end
         end
     end
@@ -80,9 +88,13 @@ flowchart TB
     APIServer --> KyvernoAdmission
     ArgoCDCore -->|"GitOps Sync"| DevNS
     ArgoCDCore -->|"GitOps Sync"| StagingNS
+    ArgoCDCore -->|"GitOps Sync"| MonitoringNS
     ArgoCDCore -->|"GitOps Self-Manage"| ArgoCDNS
     KyvernoAdmission -.->|"Admission Review (Allow / Deny)"| DevNS
     KyvernoAdmission -.->|"Admission Review (Allow / Deny)"| StagingNS
+    Blackbox -->|"Synthetic HTTP Probing (10s)"| DevApp
+    Prometheus -->|"Scrapes Metrics & Evaluates SLOs"| Blackbox
+    Grafana -->|"Visualizes SLIs & Error Budgets"| Prometheus
     PrivateSubnets -->|"Outbound Egress (0.0.0.0/0)"| NAT
 ```
 
@@ -94,27 +106,33 @@ flowchart TB
 │   └── workflows/              # CI workflows (planned Phase 5)
 ├── argocd/
 │   ├── root-app.yaml           # Root application for GitOps app-of-apps bootstrap
-│   └── apps/                   # Application definitions (self, dev, staging)
+│   └── apps/                   # Application definitions (self, dev, staging, monitoring)
 │       ├── argocd-self.yaml
 │       ├── dev-sample-app.yaml
+│       ├── monitoring.yaml
 │       └── staging-sample-app.yaml
 ├── docs/
-│   ├── adr/                    # Architectural Decision Records (0001 to 0006)
+│   ├── adr/                    # Architectural Decision Records (0001 to 0007)
 │   │   ├── 0001-managed-node-groups.md
 │   │   ├── 0002-single-nat-gateway.md
 │   │   ├── 0003-spot-instances-for-worker-nodes.md
 │   │   ├── 0004-restricted-public-api-endpoint.md
 │   │   ├── 0005-kubernetes-version-selection.md
-│   │   └── 0006-ecs-vs-eks-and-local-state.md
+│   │   ├── 0006-ecs-vs-eks-and-local-state.md
+│   │   └── 0007-blackbox-probing-for-slos.md
 │   ├── evidence/               # Measured execution logs and verification evidence
-│   │   ├── apply.log           # Timed apply log (Phase 2)
-│   │   ├── destroy.log         # Timed destroy log (Phase 2)
+│   │   ├── apply-phase-2.log   # Timed apply log (Phase 2: 11m 26s)
+│   │   ├── apply-phase-3.log   # Timed apply log (Phase 3: 11m 52s)
+│   │   ├── destroy-phase-2.log # Timed destroy log (Phase 2: 10m 30s)
+│   │   ├── destroy-phase-3.log # Timed destroy log (Phase 3: 11m 07s)
 │   │   ├── phase-1-verification.md
-│   │   └── phase-2-verification.md
+│   │   ├── phase-2-verification.md
+│   │   └── phase-3-verification.md
 │   ├── images/                 # Platform UI screenshots
 │   │   ├── argocd-applications.png
 │   │   └── argocd-dev-sample-app-tree.png
-│   └── cost.md                 # Architecture cost model
+│   ├── cost.md                 # Architecture cost model
+│   └── slo.md                  # SLO specifications, burn rate math, drill results
 ├── helm/
 │   └── sample-app/             # Pinned NGINX microservice Helm chart
 │       ├── Chart.yaml
@@ -127,6 +145,14 @@ flowchart TB
 │       ├── disallow-latest-tag.yaml
 │       ├── disallow-privileged-containers.yaml
 │       └── require-resource-limits.yaml
+├── monitoring/                 # Observability stack Helm chart & SLO manifests
+│   ├── Chart.yaml
+│   ├── values.yaml             # Small resource limits, 6h retention, emptyDir storage
+│   ├── charts/                 # Pinned vendor tarballs (zero-EBS deployment)
+│   └── templates/
+│       ├── probe.yaml          # Prometheus Operator Probe targeting dev-sample-app
+│       ├── slo-rules.yaml      # Recording rules & multi-window burn rate alerts
+│       └── slo-dashboard.yaml  # ConfigMap sidecar with Grafana SLO dashboard
 └── terraform/                  # Infrastructure as Code
     ├── main.tf                 # VPC and EKS module configurations
     ├── outputs.tf              # Cluster endpoints, ARN, OIDC issuer
@@ -197,19 +223,25 @@ This platform is deliberately scoped as an engineering portfolio reference rathe
 - Manual GitOps and policy bootstrap: GitOps and policy bootstrap is manual helm and kubectl, not automated in Terraform.
 - Policy management outside GitOps: Kyverno policies are not yet managed by ArgoCD.
 - No CI plan or apply pipeline: Infrastructure execution is performed directly from the CLI rather than through automated pipeline checks and pull request automation.
-- No monitoring or SLOs: Real-time telemetry, dashboarding (Prometheus and Grafana), alerting rules, and error budgets are not yet deployed.
+- Grafana default credentials and port-forward access: Grafana uses default admin credentials (admin / prom-operator) and is accessed solely via local kubectl port-forward without an ingress controller, external DNS, or OIDC/SSO authentication.
+- No Alertmanager notification receivers: Alertmanager is configured with a null receiver; alert routing and multi-window burn-rate evaluations occur entirely in-cluster without dispatching external notifications to PagerDuty, Slack, or email.
+- No persistent metrics storage: Prometheus, Alertmanager, and Grafana run with emptyDir ephemeral volumes to maintain zero EBS storage cost during on-demand sessions. Historical metrics do not persist across cluster rebuilds.
 - No multi-region redundancy: Networking and compute are deployed exclusively in AWS region ap-south-1.
 - No service mesh: Workloads rely on core Kubernetes ClusterIP networking without mutual TLS or fine-grained traffic routing.
 - Single-account setup: Control plane, compute, and networking reside within a single AWS account rather than separated across multi-account landing zones.
+- No NetworkPolicies and broad intra-node rule: The node security group rule ingress_self_all allows all node-to-node traffic across all protocols and ports (restricted to the node security group as source). This is broader than strictly required for port 80 synthetic probing, and Kubernetes NetworkPolicies are not implemented to enforce fine-grained pod-level isolation.
+- Kyverno policy exemptions: The monitoring namespace is completely exempt from all three CEL ValidatingPolicies to allow third-party kube-prometheus-stack components (such as node-exporter requiring host access and operator sidecars without explicit limits) to deploy without webhook rejections. Workload policies are only enforced on application namespaces (dev and staging).
 - Ephemeral cost control: Costs are managed by rebuilding on demand and destroying after each session rather than maintaining continuous uptime.
 
 ## Roadmap
 
-- Phase 3: Observability, Monitoring, and SLOs
-  - Deploy kube-prometheus-stack (Prometheus, Alertmanager, Grafana).
-  - Define explicit service-level indicators (SLIs), service-level objectives (SLOs), and error budgets for workloads.
-  - Implement alert notifications for node resource saturation and admission webhook latency.
-- Phase 4: Failure Drills and Resilience Testing
+- Phase 3: Observability, Monitoring, and SLOs (Completed)
+  - Deployed kube-prometheus-stack (Prometheus, Alertmanager, Grafana) and prometheus-blackbox-exporter via ArgoCD.
+  - Pinned small resource limits and emptyDir ephemeral volumes for zero EBS storage costs.
+  - Defined explicit availability (99.0%) and latency (95.0% <50ms) SLOs with Prometheus recording rules.
+  - Implemented multi-window multi-burn-rate alerts (critical fast burn and warning slow burn).
+  - Deployed automated Grafana dashboard and validated alerting with an empirical alert validation test (scaling dev-sample-app to 0 replicas).
+- Phase 4: Failure Drills and Resilience Testing (Planned)
   - Conduct node drain and termination drills to evaluate Pod Disruption Budgets and pod rescheduling behavior.
   - Execute admission controller failure tests to assess cluster behavior during webhook unavailability.
   - Measure platform recovery time from complete cold start.
@@ -226,3 +258,4 @@ This platform is deliberately scoped as an engineering portfolio reference rathe
 - [ADR 0004: Restricted Public API Endpoint](docs/adr/0004-restricted-public-api-endpoint.md)
 - [ADR 0005: Kubernetes Version Selection](docs/adr/0005-kubernetes-version-selection.md)
 - [ADR 0006: ECS vs EKS and Local State](docs/adr/0006-ecs-vs-eks-and-local-state.md)
+- [ADR 0007: Synthetic Blackbox Probing for SLOs](docs/adr/0007-blackbox-probing-for-slos.md)

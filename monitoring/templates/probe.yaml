@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: dev-sample-app-probe
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: dev-sample-app-probe
+spec:
+  interval: 10s
+  scrapeTimeout: 5s
+  module: http_2xx
+  prober:
+    url: prometheus-blackbox-exporter.monitoring.svc.cluster.local:9115
+    path: /probe
+  targets:
+    staticConfig:
+      static:
+        - http://dev-sample-app.dev.svc.cluster.local:80/
+      labels:
+        job: blackbox-dev-sample-app
+        app: dev-sample-app
+        environment: dev

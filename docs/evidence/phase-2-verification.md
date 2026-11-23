@@ -8,7 +8,7 @@ Target Branch: phase-2-gitops
 
 ## 1. Measured Cluster Timing
 ### Apply Timing
-Source: `time terraform apply -no-color tfplan 2>&1 | tee docs/evidence/apply.log`
+Source: `time terraform apply -no-color tfplan 2>&1 | tee docs/evidence/apply-phase-2.log`
 - Start Time: 2026-11-22T15:43:11+05:30
 - Total Real Time: 11m 26.615s (686.615 seconds)
 - User Time: 0m 4.503s
@@ -16,7 +16,7 @@ Source: `time terraform apply -no-color tfplan 2>&1 | tee docs/evidence/apply.lo
 - Resources Provisioned: 58 added, 0 changed, 0 destroyed.
 
 ### Destroy Timing
-Source: `time terraform destroy -auto-approve -no-color 2>&1 | tee docs/evidence/destroy.log`
+Source: `time terraform destroy -auto-approve -no-color 2>&1 | tee docs/evidence/destroy-phase-2.log`
 - Start Time: 2026-11-22T16:10:44+05:30
 - Total Real Time: 10m 30.480s (630.480 seconds)
 - User Time: 0m 7.694s
