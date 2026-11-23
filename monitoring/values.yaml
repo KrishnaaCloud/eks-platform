@@ -1,0 +1,100 @@
+kube-prometheus-stack:
+  fullnameOverride: "kube-prometheus-stack"
+
+  prometheus:
+    prometheusSpec:
+      retention: 6h
+      storageSpec:
+        emptyDir: {}
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+      ruleSelectorNilUsesHelmValues: false
+      serviceMonitorSelectorNilUsesHelmValues: false
+      podMonitorSelectorNilUsesHelmValues: false
+      probeSelectorNilUsesHelmValues: false
+      ruleSelector: {}
+      serviceMonitorSelector: {}
+      podMonitorSelector: {}
+      probeSelector: {}
+
+  alertmanager:
+    alertmanagerSpec:
+      storage:
+        emptyDir: {}
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+
+  grafana:
+    enabled: true
+    persistence:
+      enabled: false
+    adminPassword: "prom-operator"
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+    sidecar:
+      dashboards:
+        enabled: true
+        label: grafana_dashboard
+        labelValue: "1"
+        searchNamespace: ALL
+
+  prometheusOperator:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+  kube-state-metrics:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
+  nodeExporter:
+    enabled: true
+    resources:
+      requests:
+        cpu: 20m
+        memory: 32Mi
+      limits:
+        cpu: 50m
+        memory: 64Mi
+
+prometheus-blackbox-exporter:
+  fullnameOverride: "prometheus-blackbox-exporter"
+  resources:
+    requests:
+      cpu: 20m
+      memory: 32Mi
+    limits:
+      cpu: 50m
+      memory: 64Mi
+  config:
+    modules:
+      http_2xx:
+        prober: http
+        timeout: 5s
+        http:
+          valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+          method: GET

@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/KrishnaaCloud/eks-platform.git
-    targetRevision: main
+    targetRevision: phase-3-monitoring
     path: argocd/apps
   destination:
     server: https://kubernetes.default.svc

@@ -11,7 +11,7 @@ spec:
         resources: ["pods"]
   matchConditions:
     - name: exclude-system-namespaces
-      expression: "!['kube-system', 'kyverno', 'argocd'].exists(ns, ns == request.namespace)"
+      expression: "!['kube-system', 'kyverno', 'argocd', 'monitoring'].exists(ns, ns == request.namespace)"
   validationActions:
     - Deny
   validations:
