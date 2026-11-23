@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/KrishnaaCloud/eks-platform.git
-    targetRevision: phase-3-monitoring
+    targetRevision: main
     path: monitoring
     helm:
       releaseName: monitoring

@@ -31,7 +31,12 @@ Command: `time terraform apply -no-color tfplan 2>&1 | tee docs/evidence/apply.l
   - Scope: The rule is restricted strictly to members of the node security group (`self = true`). No ingress is permitted from outside the node group, VPC subnets, or public CIDRs.
 
 ### Teardown Timing
-*(To be recorded upon timed destroy execution)*
+Command: `time terraform destroy -auto-approve -no-color 2>&1 | tee ../docs/evidence/destroy.log`
+- Start Time: 2026-11-23T17:22:15+05:30 (11:52:15 UTC)
+- Total Real Time: **11m 7.080s** (667.080 seconds)
+- User Time: 0m 7.745s
+- Sys Time: 0m 1.176s
+- Resources Decommissioned: **59 destroyed**, 0 left. All AWS infrastructure cleanly decommissioned.
 
 ---
 
@@ -158,4 +163,32 @@ $ kubectl exec -n monitoring prometheus-kube-prometheus-stack-prometheus-0 -c pr
 ---
 
 ## 5. Residual Billable Infrastructure Checks
-*(To be populated after timed destroy)*
+
+Following the timed teardown, an automated scan across all potentially billable AWS services was executed to verify that zero residual cloud resources remain:
+
+```text
+$ aws eks list-clusters --output json
+{
+    "clusters": []
+}
+
+$ aws ec2 describe-nat-gateways --filter "Name=state,Values=available,pending" --query "NatGateways[*].{Id:NatGatewayId,State:State}" --output json
+[]
+
+$ aws ec2 describe-volumes --filters "Name=status,Values=in-use,available" --query "Volumes[*].{Id:VolumeId,Size:Size,State:State}" --output json
+[]
+
+$ aws elbv2 describe-load-balancers --query "LoadBalancers[*].{Arn:LoadBalancerArn,Name:LoadBalancerName}" --output json
+[]
+
+$ aws elb describe-load-balancers --query "LoadBalancerDescriptions[*].LoadBalancerName" --output json
+[]
+
+$ aws ec2 describe-addresses --query "Addresses[*].{AllocationId:AllocationId,PublicIp:PublicIp}" --output json
+[]
+
+$ aws ec2 describe-instances --filters "Name=instance-state-name,Values=running,pending" --query "Reservations[*].Instances[*].{Id:InstanceId,State:State.Name,Type:InstanceType}" --output json
+[]
+```
+
+**Residual Verification Result**: Confirmed **0 clusters, 0 NAT gateways, 0 EBS volumes, 0 load balancers, 0 Elastic IPs, and 0 running EC2 instances**. Zero billable resources remain.
