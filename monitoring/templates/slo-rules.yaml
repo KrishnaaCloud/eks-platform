@@ -66,13 +66,13 @@ spec:
       rules:
         # Latency SLI: 95% of probes under 50ms (0.05s)
         - record: job:sample_app_latency:ratio_rate2m
-          expr: avg_over_time((probe_duration_seconds{job="blackbox-dev-sample-app"} < bool 0.05 and probe_success{job="blackbox-dev-sample-app"} == bool 1)[2m])
+          expr: avg_over_time((probe_duration_seconds{job="blackbox-dev-sample-app"} < bool 0.05 and probe_success{job="blackbox-dev-sample-app"} == bool 1)[2m:10s])
         - record: job:sample_app_latency:ratio_rate5m
-          expr: avg_over_time((probe_duration_seconds{job="blackbox-dev-sample-app"} < bool 0.05 and probe_success{job="blackbox-dev-sample-app"} == bool 1)[5m])
+          expr: avg_over_time((probe_duration_seconds{job="blackbox-dev-sample-app"} < bool 0.05 and probe_success{job="blackbox-dev-sample-app"} == bool 1)[5m:10s])
         - record: job:sample_app_latency:ratio_rate10m
-          expr: avg_over_time((probe_duration_seconds{job="blackbox-dev-sample-app"} < bool 0.05 and probe_success{job="blackbox-dev-sample-app"} == bool 1)[10m])
+          expr: avg_over_time((probe_duration_seconds{job="blackbox-dev-sample-app"} < bool 0.05 and probe_success{job="blackbox-dev-sample-app"} == bool 1)[10m:10s])
         - record: job:sample_app_latency:ratio_rate30m
-          expr: avg_over_time((probe_duration_seconds{job="blackbox-dev-sample-app"} < bool 0.05 and probe_success{job="blackbox-dev-sample-app"} == bool 1)[30m])
+          expr: avg_over_time((probe_duration_seconds{job="blackbox-dev-sample-app"} < bool 0.05 and probe_success{job="blackbox-dev-sample-app"} == bool 1)[30m:10s])
 
         # Latency Burn Rate Recording Rules: (1 - Latency_SLI) / (1 - 0.95)
         - record: job:sample_app_latency:burn_rate2m
