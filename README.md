@@ -8,11 +8,17 @@ My primary production background is operating AWS ECS at scale across mission-cr
 
 ## Screenshots
 
-![ArgoCD Applications Overview](docs/images/argocd-applications.png)
-*ArgoCD showing all four applications (argocd-self, dev-sample-app, root-apps, and staging-sample-app) Synced and Healthy after the Phase 2 bootstrap.*
+![Sample App SLO Dashboard](docs/images/grafana-slo-dashboard.png)
+*Grafana dashboard showing 100% availability and latency SLIs, multi-window burn rates, and active synthetic probe health.*
 
-![ArgoCD dev-sample-app Resource Tree](docs/images/argocd-dev-sample-app-tree.png)
-*Resource tree for dev-sample-app showing Healthy and Synced status across Service, Deployment, ReplicaSet, and Pod components.*
+![Grafana Alerting Multi-Window Burn Rate](docs/images/grafana-firing-alert.png)
+*Grafana Alerting showing SampleAppAvailabilityFastBurn and SampleAppAvailabilitySlowBurn firing during the alert validation test.*
+
+![ArgoCD Applications Overview](docs/images/argocd-applications.png)
+*ArgoCD showing all five applications (argocd-self, dev-sample-app, monitoring, root-apps, and staging-sample-app) Synced and Healthy.*
+
+![Cluster Pods Overview](docs/images/kubectl-get-pods.png)
+*Terminal output showing all 37 pods Running across 6 namespaces after the Phase 3 bootstrap.*
 
 ## Measured Results
 
@@ -130,7 +136,10 @@ flowchart TB
 │   │   └── phase-3-verification.md
 │   ├── images/                 # Platform UI screenshots
 │   │   ├── argocd-applications.png
-│   │   └── argocd-dev-sample-app-tree.png
+│   │   ├── argocd-dev-sample-app-tree.png
+│   │   ├── grafana-firing-alert.png
+│   │   ├── grafana-slo-dashboard.png
+│   │   └── kubectl-get-pods.png
 │   ├── cost.md                 # Architecture cost model
 │   └── slo.md                  # SLO specifications, burn rate math, drill results
 ├── helm/
