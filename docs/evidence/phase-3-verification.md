@@ -123,7 +123,7 @@ $ kubectl exec -n monitoring prometheus-kube-prometheus-stack-prometheus-0 -c pr
 ```
 
 > [!NOTE]
-> In the recorded Grafana dashboard telemetry, an early probe latency spike (~4.5s) is visible between 16:35 and 16:40. This initial latency spike came from the first synthetic probes executed immediately after the cluster started up (initial DNS cache warming, ARP discovery, and connection handshake). Subsequent probes consistently completed in ~6.7ms (0.0067s), well below the 50ms latency SLO threshold.
+> In the recorded Grafana dashboard telemetry, an early probe latency spike of about 4.5s is visible between 16:35 and 16:40 IST, right after cluster startup, which then dropped. The exact cause was not investigated; a likely explanation is first-request warm-up, but this was not verified. Later steady-state probe latency measured at 0.006772836s (~6.8ms), as recorded in the live probe_duration_seconds query output above (timestamp 1795432313.037), well below the 50ms latency SLO threshold.
 
 ### SLI Recording Rules
 ```text
