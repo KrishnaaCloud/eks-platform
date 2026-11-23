@@ -35,15 +35,36 @@ Under the AWS VPC CNI unencapsulated flat-network model, cross-node pod-to-pod t
 
 ### Decision
 We added rule `ingress_self_all` (`protocol = -1`, `from_port = 0`, `to_port = 0`, `self = true`) to `node_security_group_additional_rules` in Terraform, bringing the total Terraform resource count to 59 (Phase 1 and 2 had 58).
-- **Architectural Rationale**: Kubernetes treats the node security group as the cluster transport boundary (`self = true`), delegating microservice L3/L4 authorization to Kubernetes NetworkPolicies rather than requiring manual infrastructure Terraform adjustments whenever services expose standard ports (80, 443).
-- **Scope Restriction**: Ingress is strictly confined to members of the node security group itself (`self = true`); no traffic from other VPC subnets or public CIDRs is admitted.
+- **Scope Restriction**: The rule allows all node-to-node traffic across all protocols and ports where the source is strictly the node security group itself (`self = true`). Ingress is strictly confined to members of the node security group; no traffic from other VPC subnets or public CIDRs is admitted.
+- **Deviation & Trade-off Analysis**: This rule is broader than strictly needed, as only TCP port 80 was required for synthetic probing. Kubernetes NetworkPolicies are not implemented on this cluster, so pod-level traffic segmentation is not enforced within the node security group boundary.
+
+## Vendored Helm Charts
+To ensure reliable, deterministic GitOps deployments without external network dependencies during cluster bootstrap, the upstream Helm charts are vendored directly in the repository under `monitoring/charts/` as pinned tarballs (`.tgz`):
+- `kube-prometheus-stack-69.8.0.tgz`
+- `prometheus-blackbox-exporter-11.22.0.tgz`
+
+ArgoCD reconciles the monitoring stack directly from these vendored chart archives rather than pulling from external Helm registries at runtime.
+
+## Kyverno Policy Exemption for Monitoring Namespace
+The `monitoring` namespace is explicitly exempt from all three CEL-based Kyverno `ValidatingPolicy` definitions (`disallow-latest-tag`, `disallow-privileged-containers`, and `require-resource-limits`).
+
+### Rationale
+Third-party observability components packaged in `kube-prometheus-stack` require capabilities that conflict with strict workload policies:
+1. `prometheus-node-exporter` requires host filesystem mounts and root/privileged access to collect node-level hardware metrics.
+2. Operator sidecars and helper init containers (e.g., configmap-reloader and admission jobs) lack explicit CPU and memory resource limits in upstream defaults.
+3. Upstream subcharts may use untagged or non-conforming image references.
+
+Enforcing workload admission policies against the monitoring namespace would block operator reconciliation and daemonset scheduling. Workload security policies are therefore targeted strictly at application namespaces (`dev` and `staging`), leaving system and observability namespaces exempt.
 
 ## Consequences
 ### Positive
 - Direct measurement of user-perceived availability and latency across the full cluster network path.
 - Clean separation between application business logic and platform observability.
 - Rapid detection of network regressions, security group misconfigurations, and DNS resolution issues.
+- Fully offline, reproducible GitOps reconciliation using vendored chart tarballs.
 
 ### Negative
 - Synthetic probes generate synthetic load on the application endpoints (minimal at 10s scraping intervals).
 - Probing from within the cluster (node-to-node) does not account for external internet transit, ingress CDN latencies, or edge load balancer failures outside AWS VPC.
+- The intra-node security group rule is broader than strictly required (allows all protocols/ports between nodes), and NetworkPolicies are not implemented to isolate pod-to-pod traffic.
+- The monitoring namespace operates outside the admission controller policy boundary.

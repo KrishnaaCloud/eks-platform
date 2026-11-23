@@ -21,12 +21,12 @@ All metrics below are verified from recorded execution outputs in the evidence d
 | Metric | Measured Value | Verification Source |
 | :--- | :--- | :--- |
 | Terraform resources | [59](docs/evidence/phase-3-verification.md#1-measured-cluster-timing) resources provisioned (Phase 1 and 2 had 58; Phase 3 added 1 node security group rule for intra-cluster traffic) | [phase-3-verification.md](docs/evidence/phase-3-verification.md#1-measured-cluster-timing) |
-| Cluster build (apply) | [11m 26s](docs/evidence/apply.log) (Phase 2), [11m 52s](docs/evidence/phase-3-verification.md#1-measured-cluster-timing) (Phase 3) | [apply.log](docs/evidence/apply.log) / [phase-3-verification.md](docs/evidence/phase-3-verification.md#1-measured-cluster-timing) |
-| Cluster teardown (destroy) | [11m 33s](docs/evidence/phase-1-verification.md#timings) (Phase 1), [10m 30s](docs/evidence/destroy.log) (Phase 2), [11m 07s](docs/evidence/phase-3-verification.md#teardown-timing) (Phase 3) | [phase-1-verification.md](docs/evidence/phase-1-verification.md#timings) / [destroy.log](docs/evidence/destroy.log) / [phase-3-verification.md](docs/evidence/phase-3-verification.md#teardown-timing) |
+| Cluster build (apply) | [11m 26s](docs/evidence/apply-phase-2.log) (Phase 2), [11m 52s](docs/evidence/apply-phase-3.log) (Phase 3) | [apply-phase-2.log](docs/evidence/apply-phase-2.log) / [apply-phase-3.log](docs/evidence/apply-phase-3.log) |
+| Cluster teardown (destroy) | [11m 33s](docs/evidence/phase-1-verification.md#timings) (Phase 1), [10m 30s](docs/evidence/destroy-phase-2.log) (Phase 2), [11m 07s](docs/evidence/destroy-phase-3.log) (Phase 3) | [phase-1-verification.md](docs/evidence/phase-1-verification.md#timings) / [destroy-phase-2.log](docs/evidence/destroy-phase-2.log) / [destroy-phase-3.log](docs/evidence/destroy-phase-3.log) |
 | Kubernetes version and nodes | [1.37.1](docs/evidence/phase-1-verification.md#1-node-status-kubectl-get-nodes--o-wide), [2](docs/evidence/phase-1-verification.md#1-node-status-kubectl-get-nodes--o-wide) nodes Ready | [phase-1-verification.md](docs/evidence/phase-1-verification.md#1-node-status-kubectl-get-nodes--o-wide) |
 | Pods running after bootstrap | [37](docs/evidence/phase-3-verification.md#deployed-workloads--system-pods) pods Running across 6 namespaces | [phase-3-verification.md](docs/evidence/phase-3-verification.md#deployed-workloads--system-pods) |
 | ArgoCD applications | [5](docs/evidence/phase-3-verification.md#gitops-application-state-argocd) applications (all Synced and Healthy) | [phase-3-verification.md](docs/evidence/phase-3-verification.md#gitops-application-state-argocd) |
-| Kyverno policies enforced | [3](docs/evidence/phase-2-verification.md#3-dedicated-denial-messages-by-policy) policies, each verified by admission denial | [phase-2-verification.md](docs/evidence/phase-2-verification.md#3-dedicated-denial-messages-by-policy) |
+| Kyverno policies enforced | [3](docs/evidence/phase-2-verification.md#3-dedicated-denial-messages-by-policy) policies, each verified by admission denial (enforced on application namespaces; system and monitoring namespaces are exempt) | [phase-2-verification.md](docs/evidence/phase-2-verification.md#3-dedicated-denial-messages-by-policy) |
 | Service Level Objectives (SLOs) | [2](docs/slo.md) SLOs (99% availability, 95% latency <50ms) with multi-window burn rate alerts (windows shortened for demonstration; standard values would be 1h/5m for fast burn and 6h/30m for slow burn) | [slo.md](docs/slo.md) |
 
 ## Architecture
@@ -121,8 +121,10 @@ flowchart TB
 │   │   ├── 0006-ecs-vs-eks-and-local-state.md
 │   │   └── 0007-blackbox-probing-for-slos.md
 │   ├── evidence/               # Measured execution logs and verification evidence
-│   │   ├── apply.log           # Timed apply log (Phase 2 & 3)
-│   │   ├── destroy.log         # Timed destroy log (Phase 2)
+│   │   ├── apply-phase-2.log   # Timed apply log (Phase 2: 11m 26s)
+│   │   ├── apply-phase-3.log   # Timed apply log (Phase 3: 11m 52s)
+│   │   ├── destroy-phase-2.log # Timed destroy log (Phase 2: 10m 30s)
+│   │   ├── destroy-phase-3.log # Timed destroy log (Phase 3: 11m 07s)
 │   │   ├── phase-1-verification.md
 │   │   ├── phase-2-verification.md
 │   │   └── phase-3-verification.md
@@ -227,6 +229,8 @@ This platform is deliberately scoped as an engineering portfolio reference rathe
 - No multi-region redundancy: Networking and compute are deployed exclusively in AWS region ap-south-1.
 - No service mesh: Workloads rely on core Kubernetes ClusterIP networking without mutual TLS or fine-grained traffic routing.
 - Single-account setup: Control plane, compute, and networking reside within a single AWS account rather than separated across multi-account landing zones.
+- No NetworkPolicies and broad intra-node rule: The node security group rule ingress_self_all allows all node-to-node traffic across all protocols and ports (restricted to the node security group as source). This is broader than strictly required for port 80 synthetic probing, and Kubernetes NetworkPolicies are not implemented to enforce fine-grained pod-level isolation.
+- Kyverno policy exemptions: The monitoring namespace is completely exempt from all three CEL ValidatingPolicies to allow third-party kube-prometheus-stack components (such as node-exporter requiring host access and operator sidecars without explicit limits) to deploy without webhook rejections. Workload policies are only enforced on application namespaces (dev and staging).
 - Ephemeral cost control: Costs are managed by rebuilding on demand and destroying after each session rather than maintaining continuous uptime.
 
 ## Roadmap

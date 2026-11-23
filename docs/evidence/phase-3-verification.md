@@ -9,7 +9,7 @@ Target Branch: phase-3-monitoring
 ## 1. Measured Cluster Timing
 
 ### Apply Timing
-Command: `time terraform apply -no-color tfplan 2>&1 | tee docs/evidence/apply.log`
+Command: `time terraform apply -no-color tfplan 2>&1 | tee docs/evidence/apply-phase-3.log`
 - Start Time: 2026-11-23T16:09:07+05:30 (10:39:07 UTC)
 - Total Real Time: **11m 52.104s** (712.104 seconds)
 - User Time: 0m 4.542s
@@ -27,11 +27,11 @@ Command: `time terraform apply -no-color tfplan 2>&1 | tee docs/evidence/apply.l
 - Justification & Deviation Analysis:
   - Under AWS VPC CNI, pods receive native secondary VPC IP addresses and cross EC2 node interfaces unencapsulated.
   - The default upstream EKS module v20 node security group only authorizes ephemeral ports (1025-65535) and DNS (53), which silently drops cross-node ClusterIP traffic destined for standard HTTP port 80.
-  - Kubernetes architecture treats the node security group as the cluster transport boundary (`self = true`), delegating fine-grained service-to-service Layer 3/4 segmentation to Kubernetes NetworkPolicies rather than requiring manual Terraform security group modifications whenever microservices bind standard ports (such as HTTP 80 or HTTPS 443).
-  - Scope: The rule is restricted strictly to members of the node security group (`self = true`). No ingress is permitted from outside the node group, VPC subnets, or public CIDRs.
+  - Scope: The rule allows all node-to-node traffic across all protocols and ports where the source is strictly the node security group itself (`self = true`). No ingress is permitted from outside the node group, VPC subnets, or public CIDRs.
+  - Deviation Analysis: This rule is broader than strictly needed, as only TCP port 80 was required for synthetic probing. Kubernetes NetworkPolicies are not implemented on this cluster to enforce fine-grained pod-level isolation, so intra-node traffic is unrestricted within the node security group boundary.
 
 ### Teardown Timing
-Command: `time terraform destroy -auto-approve -no-color 2>&1 | tee ../docs/evidence/destroy.log`
+Command: `time terraform destroy -auto-approve -no-color 2>&1 | tee docs/evidence/destroy-phase-3.log`
 - Start Time: 2026-11-23T17:22:15+05:30 (11:52:15 UTC)
 - Total Real Time: **11m 7.080s** (667.080 seconds)
 - User Time: 0m 7.745s
