@@ -60,6 +60,10 @@ Calculated over a rolling 30-minute window:
 clamp_max(clamp_min((1 - (1 - SLI_ratio_rate30m) / Error_Budget) * 100, 0), 100)
 ```
 
+> [!NOTE]
+> **Error Budget Window Shortened for Demonstration**:
+> The error budget evaluation window is deliberately shortened to a rolling 30-minute window for demonstration purposes in this ephemeral cluster (standard production error budgets use a 30-day or quarterly window). Consequently, any test or drill that exhausts the error budget causes the remaining budget gauge on the Grafana dashboard to read 0% while that incident remains within the rolling 30-minute window.
+
 ---
 
 ## Multi-Window Multi-Burn-Rate Alerting Design
@@ -78,6 +82,10 @@ To eliminate false alarms while guaranteeing rapid detection of catastrophic out
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Fast Burn** | `critical` | **14.4x** | 2 minutes (standard: 5m) | 10 minutes (standard: 1h) | 1 minute (standard: 2m) | 2% consumed in 1 hour | Immediate page: system is critically degraded |
 | **Slow Burn** | `warning` | **3.0x** | 5 minutes (standard: 30m) | 30 minutes (standard: 6h) | 2 minutes (standard: 15m) | 5% consumed in 6 hours | Ticket / Slack notification: budget eroding steadily |
+
+> [!NOTE]
+> **Upstream Control Plane Alerting on AWS EKS**:
+> Default alert rules bundled in upstream kube-prometheus-stack for Kubernetes control plane components (e.g., `KubeSchedulerDown`, `KubeControllerManagerDown`, `etcdHighNumberOfFailedGRPCRequests`) show as firing in Grafana Alerting. On AWS EKS, the control plane is fully managed by AWS and is not scrapable by in-cluster worker node Prometheus instances. These firing alerts are expected artifacts of deploying upstream chart defaults on a managed Kubernetes service and are completely unrelated to application workloads or the sample app SLOs.
 
 ### Alert Rules Implementation
 #### Critical: Availability Fast Burn

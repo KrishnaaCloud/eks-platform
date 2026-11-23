@@ -9,13 +9,13 @@ My primary production background is operating AWS ECS at scale across mission-cr
 ## Screenshots
 
 ![Sample App SLO Dashboard](docs/images/grafana-slo-dashboard.png)
-*Grafana dashboard showing 100% availability and latency SLIs, multi-window burn rates, and active synthetic probe health.*
+*Captured shortly after the alert validation test. The error budget panels use a rolling 30 minute window, shortened for demonstration (a real budget would use 30 days), so they read 0% while the test is still inside that window.*
 
 ![Grafana Alerting Multi-Window Burn Rate](docs/images/grafana-firing-alert.png)
-*Grafana Alerting showing SampleAppAvailabilityFastBurn and SampleAppAvailabilitySlowBurn firing during the alert validation test.*
+*Grafana Alerting showing SampleAppAvailabilityFastBurn and SampleAppAvailabilitySlowBurn firing during the alert validation test (only these two SampleApp rules are relevant; upstream control plane alerts show firing because the AWS-managed control plane is not scrapable).*
 
 ![ArgoCD Applications Overview](docs/images/argocd-applications.png)
-*ArgoCD showing all five applications (argocd-self, dev-sample-app, monitoring, root-apps, and staging-sample-app) Synced and Healthy.*
+*ArgoCD showing all five applications (argocd-self, dev-sample-app, monitoring, root-apps, and staging-sample-app) Synced and Healthy during the Phase 3 session, when root-apps and monitoring pointed at the phase-3-monitoring branch (they point at main now).*
 
 ![Cluster Pods Overview](docs/images/kubectl-get-pods.png)
 *Terminal output showing all 37 pods Running across 6 namespaces after the Phase 3 bootstrap.*
@@ -240,6 +240,7 @@ This platform is deliberately scoped as an engineering portfolio reference rathe
 - Single-account setup: Control plane, compute, and networking reside within a single AWS account rather than separated across multi-account landing zones.
 - No NetworkPolicies and broad intra-node rule: The node security group rule ingress_self_all allows all node-to-node traffic across all protocols and ports (restricted to the node security group as source). This is broader than strictly required for port 80 synthetic probing, and Kubernetes NetworkPolicies are not implemented to enforce fine-grained pod-level isolation.
 - Kyverno policy exemptions: The monitoring namespace is completely exempt from all three CEL ValidatingPolicies to allow third-party kube-prometheus-stack components (such as node-exporter requiring host access and operator sidecars without explicit limits) to deploy without webhook rejections. Workload policies are only enforced on application namespaces (dev and staging).
+- Upstream control plane alerts on managed EKS: Default kube-prometheus-stack alerts for control plane components (scheduler, controller manager, etcd) show as firing because the AWS-managed control plane is not scrapable by in-cluster Prometheus. These alerts are an artifact of running standard upstream chart defaults on managed EKS and are unrelated to sample app workloads.
 - Ephemeral cost control: Costs are managed by rebuilding on demand and destroying after each session rather than maintaining continuous uptime.
 
 ## Roadmap
