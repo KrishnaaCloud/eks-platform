@@ -26,8 +26,17 @@ We chose **Synthetic Blackbox Probing** using `prometheus-blackbox-exporter` man
 - **Availability SLO**: 99.0% of synthetic HTTP probes return HTTP 2xx within a rolling 30-minute window (Error Budget: 1.0%).
 - **Latency SLO**: 95.0% of successful HTTP probes complete in under 50ms (0.05s) within a rolling 30-minute window (Error Budget: 5.0%).
 - **Multi-Window Multi-Burn-Rate Alerting**: Implementing Google SRE multi-window burn rate alerts:
-  - Critical (Fast Burn): Burn rate > 14.4 across 2m and 10m windows, paging when 2% of budget is consumed in 1 hour.
-  - Warning (Slow Burn): Burn rate > 3.0 across 5m and 30m windows, notifying when 5% of budget is consumed in 6 hours.
+  - Critical (Fast Burn): Burn rate > 14.4 across 2m and 10m windows with `for: 1m` duration.
+  - Warning (Slow Burn): Burn rate > 3.0 across 5m and 30m windows with `for: 2m` duration.
+  - *Evaluation Windows Note*: Windows are shortened for demonstration in this ephemeral reference platform; standard production values for a 30-day reference period would be 1h long / 5m short (for: 2m) for fast burn, and 6h long / 30m short (for: 15m) for slow burn.
+
+## Network Security Group Adjustment for Intra-Cluster Probing
+Under the AWS VPC CNI unencapsulated flat-network model, cross-node pod-to-pod traffic traverses EC2 node ENIs directly. The default upstream EKS module v20 node security group only authorizes ephemeral ports (1025-65535) and DNS (53), which blocks synthetic probes targeting standard HTTP port 80 when the probe pod and application pod reside on different nodes.
+
+### Decision
+We added rule `ingress_self_all` (`protocol = -1`, `from_port = 0`, `to_port = 0`, `self = true`) to `node_security_group_additional_rules` in Terraform, bringing the total Terraform resource count to 59 (Phase 1 and 2 had 58).
+- **Architectural Rationale**: Kubernetes treats the node security group as the cluster transport boundary (`self = true`), delegating microservice L3/L4 authorization to Kubernetes NetworkPolicies rather than requiring manual infrastructure Terraform adjustments whenever services expose standard ports (80, 443).
+- **Scope Restriction**: Ingress is strictly confined to members of the node security group itself (`self = true`); no traffic from other VPC subnets or public CIDRs is admitted.
 
 ## Consequences
 ### Positive

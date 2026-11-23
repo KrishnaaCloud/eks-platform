@@ -14,8 +14,21 @@ Command: `time terraform apply -no-color tfplan 2>&1 | tee docs/evidence/apply.l
 - Total Real Time: **11m 52.104s** (712.104 seconds)
 - User Time: 0m 4.542s
 - Sys Time: 0m 0.589s
-- Initial Resources: 58 added, 0 changed, 0 destroyed.
-- Additional Resources: 1 security group rule (`ingress_self_all`) added to enable intra-node pod communication.
+- Resources Provisioned: **59 resources provisioned** (58 initial resources plus 1 node security group rule `module.eks.aws_security_group_rule.node["ingress_self_all"]` added in Phase 3; Phase 1 and Phase 2 had 58).
+
+### Security Group Rule Addition & Architectural Justification
+- Exact Rule Definition:
+  - Resource: `module.eks.aws_security_group_rule.node["ingress_self_all"]`
+  - Protocol: `-1` (all IP protocols)
+  - From Port: `0`, To Port: `0` (all ports)
+  - Type: `ingress`
+  - Source: `self = true` (traffic originating strictly from within the node security group itself)
+  - Description: `Node to node all traffic inside node security group`
+- Justification & Deviation Analysis:
+  - Under AWS VPC CNI, pods receive native secondary VPC IP addresses and cross EC2 node interfaces unencapsulated.
+  - The default upstream EKS module v20 node security group only authorizes ephemeral ports (1025-65535) and DNS (53), which silently drops cross-node ClusterIP traffic destined for standard HTTP port 80.
+  - Kubernetes architecture treats the node security group as the cluster transport boundary (`self = true`), delegating fine-grained service-to-service Layer 3/4 segmentation to Kubernetes NetworkPolicies rather than requiring manual Terraform security group modifications whenever microservices bind standard ports (such as HTTP 80 or HTTPS 443).
+  - Scope: The rule is restricted strictly to members of the node security group (`self = true`). No ingress is permitted from outside the node group, VPC subnets, or public CIDRs.
 
 ### Teardown Timing
 *(To be recorded upon timed destroy execution)*
@@ -115,9 +128,17 @@ $ kubectl exec -n monitoring prometheus-kube-prometheus-stack-prometheus-0 -c pr
 
 ---
 
-## 4. Failure Drill Verification: SampleAppAvailabilityFastBurn
+## 4. Alert Validation Test Verification: SampleAppAvailabilityFastBurn
 
-### Measured Drill Events & Timestamps
+### Alert Rule Windows & Multi-Window Formulation
+- **Evaluation Windows**: Shortened for demonstration in this ephemeral reference platform so alert states and error budget consumption can be triggered and verified within an on-demand session.
+  - Fast Burn (demonstrated): 10m long window, 2m short window, `for: 1m` duration.
+  - Slow Burn (demonstrated): 30m long window, 5m short window, `for: 2m` duration.
+- **Standard Production Values**: Under standard Google SRE multi-window multi-burn-rate design (for a 30-day reference window):
+  - Fast Burn standard: **1h long window, 5m short window, `for: 2m` duration** (14.4x rate, burning 2% of budget in 1 hour).
+  - Slow Burn standard: **6h long window, 30m short window, `for: 15m` duration** (3.0x rate, burning 5% of budget in 6 hours).
+
+### Measured Test Events & Timestamps
 ```text
 [11:20:03 UTC] Scaling deployment dev-sample-app to 0 replicas...
 [11:20:13 UTC +10.0s] probe_success=0.0 (synthetic probe failure detected)

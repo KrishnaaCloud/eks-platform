@@ -20,14 +20,14 @@ All metrics below are verified from recorded execution outputs in the evidence d
 
 | Metric | Measured Value | Verification Source |
 | :--- | :--- | :--- |
-| Terraform resources | [58](docs/evidence/apply.log) resources provisioned | [apply.log](docs/evidence/apply.log) |
+| Terraform resources | [59](docs/evidence/phase-3-verification.md#1-measured-cluster-timing) resources provisioned (Phase 1 and 2 had 58; Phase 3 added 1 node security group rule for intra-cluster traffic) | [phase-3-verification.md](docs/evidence/phase-3-verification.md#1-measured-cluster-timing) |
 | Cluster build (apply) | [11m 26s](docs/evidence/apply.log) (Phase 2), [11m 52s](docs/evidence/phase-3-verification.md#1-measured-cluster-timing) (Phase 3) | [apply.log](docs/evidence/apply.log) / [phase-3-verification.md](docs/evidence/phase-3-verification.md#1-measured-cluster-timing) |
 | Cluster teardown (destroy) | [11m 33s](docs/evidence/phase-1-verification.md#timings) (Phase 1), [10m 30s](docs/evidence/destroy.log) (Phase 2) | [phase-1-verification.md](docs/evidence/phase-1-verification.md#timings) / [destroy.log](docs/evidence/destroy.log) |
 | Kubernetes version and nodes | [1.37.1](docs/evidence/phase-1-verification.md#1-node-status-kubectl-get-nodes--o-wide), [2](docs/evidence/phase-1-verification.md#1-node-status-kubectl-get-nodes--o-wide) nodes Ready | [phase-1-verification.md](docs/evidence/phase-1-verification.md#1-node-status-kubectl-get-nodes--o-wide) |
 | Pods running after bootstrap | [37](docs/evidence/phase-3-verification.md#deployed-workloads--system-pods) pods Running across 6 namespaces | [phase-3-verification.md](docs/evidence/phase-3-verification.md#deployed-workloads--system-pods) |
 | ArgoCD applications | [5](docs/evidence/phase-3-verification.md#gitops-application-state-argocd) applications (all Synced and Healthy) | [phase-3-verification.md](docs/evidence/phase-3-verification.md#gitops-application-state-argocd) |
 | Kyverno policies enforced | [3](docs/evidence/phase-2-verification.md#3-dedicated-denial-messages-by-policy) policies, each verified by admission denial | [phase-2-verification.md](docs/evidence/phase-2-verification.md#3-dedicated-denial-messages-by-policy) |
-| Service Level Objectives (SLOs) | [2](docs/slo.md) SLOs (99% availability, 95% latency <50ms) with multi-window burn rate alerts | [slo.md](docs/slo.md) |
+| Service Level Objectives (SLOs) | [2](docs/slo.md) SLOs (99% availability, 95% latency <50ms) with multi-window burn rate alerts (windows shortened for demonstration; standard values would be 1h/5m for fast burn and 6h/30m for slow burn) | [slo.md](docs/slo.md) |
 
 ## Architecture
 
@@ -221,6 +221,8 @@ This platform is deliberately scoped as an engineering portfolio reference rathe
 - Manual GitOps and policy bootstrap: GitOps and policy bootstrap is manual helm and kubectl, not automated in Terraform.
 - Policy management outside GitOps: Kyverno policies are not yet managed by ArgoCD.
 - No CI plan or apply pipeline: Infrastructure execution is performed directly from the CLI rather than through automated pipeline checks and pull request automation.
+- Grafana default credentials and port-forward access: Grafana uses default admin credentials (admin / prom-operator) and is accessed solely via local kubectl port-forward without an ingress controller, external DNS, or OIDC/SSO authentication.
+- No Alertmanager notification receivers: Alertmanager is configured with a null receiver; alert routing and multi-window burn-rate evaluations occur entirely in-cluster without dispatching external notifications to PagerDuty, Slack, or email.
 - No persistent metrics storage: Prometheus, Alertmanager, and Grafana run with emptyDir ephemeral volumes to maintain zero EBS storage cost during on-demand sessions. Historical metrics do not persist across cluster rebuilds.
 - No multi-region redundancy: Networking and compute are deployed exclusively in AWS region ap-south-1.
 - No service mesh: Workloads rely on core Kubernetes ClusterIP networking without mutual TLS or fine-grained traffic routing.
@@ -234,8 +236,8 @@ This platform is deliberately scoped as an engineering portfolio reference rathe
   - Pinned small resource limits and emptyDir ephemeral volumes for zero EBS storage costs.
   - Defined explicit availability (99.0%) and latency (95.0% <50ms) SLOs with Prometheus recording rules.
   - Implemented multi-window multi-burn-rate alerts (critical fast burn and warning slow burn).
-  - Deployed automated Grafana dashboard and validated alerting with an empirical failure drill.
-- Phase 4: Failure Drills and Resilience Testing
+  - Deployed automated Grafana dashboard and validated alerting with an empirical alert validation test (scaling dev-sample-app to 0 replicas).
+- Phase 4: Failure Drills and Resilience Testing (Planned)
   - Conduct node drain and termination drills to evaluate Pod Disruption Budgets and pod rescheduling behavior.
   - Execute admission controller failure tests to assess cluster behavior during webhook unavailability.
   - Measure platform recovery time from complete cold start.

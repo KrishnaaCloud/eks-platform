@@ -66,12 +66,18 @@ clamp_max(clamp_min((1 - (1 - SLI_ratio_rate30m) / Error_Budget) * 100, 0), 100)
 
 Traditional alerting uses a single window and threshold, forcing a compromise between slow alerts (hours to fire during total outages) or high false positive rates (transient dips triggering alerts).
 
-To eliminate false alarms while guaranteeing rapid detection of catastrophic outages, we implement **Multi-Window Multi-Burn-Rate Alerts** across short and long lookback windows:
+To eliminate false alarms while guaranteeing rapid detection of catastrophic outages, we implement **Multi-Window Multi-Burn-Rate Alerts** across short and long lookback windows.
+
+> [!NOTE]
+> **Evaluation Windows Shortened for Demonstration**:
+> In this ephemeral reference platform, burn-rate windows are deliberately shortened for demonstration so alerts can be triggered and verified within an on-demand work session.
+> - **Demonstrated values**: Fast Burn uses 10m long / 2m short windows with `for: 1m` duration; Slow Burn uses 30m long / 5m short windows with `for: 2m` duration.
+> - **Standard production values**: Under the standard Google SRE multi-window multi-burn-rate design for a 30-day reference period, the standard values would be **1h long / 5m short windows (with `for: 2m` duration)** for fast burn (14.4x rate, burning 2% budget in 1 hour), and **6h long / 30m short windows (with `for: 15m` duration)** for slow burn (3.0x rate, burning 5% budget in 6 hours).
 
 | Alert Tier | Severity | Burn Rate Threshold | Short Window | Long Window | for Duration | Budget Consumed | Response / Action |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Fast Burn** | `critical` | **14.4x** | 2 minutes | 10 minutes | 1 minute | 2% consumed in 1 hour | Immediate page: system is critically degraded |
-| **Slow Burn** | `warning` | **3.0x** | 5 minutes | 30 minutes | 2 minutes | 5% consumed in 6 hours | Ticket / Slack notification: budget eroding steadily |
+| **Fast Burn** | `critical` | **14.4x** | 2 minutes (standard: 5m) | 10 minutes (standard: 1h) | 1 minute (standard: 2m) | 2% consumed in 1 hour | Immediate page: system is critically degraded |
+| **Slow Burn** | `warning` | **3.0x** | 5 minutes (standard: 30m) | 30 minutes (standard: 6h) | 2 minutes (standard: 15m) | 5% consumed in 6 hours | Ticket / Slack notification: budget eroding steadily |
 
 ### Alert Rules Implementation
 #### Critical: Availability Fast Burn
@@ -125,11 +131,11 @@ An automated ConfigMap (`sample-app-slo-dashboard`) labeled `grafana_dashboard: 
 
 ---
 
-## Empirical Failure Drill Results
+## Empirical Alert Validation Test Results
 
-To validate the multi-window burn rate alert pipeline, an active failure drill was executed against `dev-sample-app`.
+To validate the multi-window burn rate alert pipeline, an active alert validation test was executed against `dev-sample-app`.
 
-### Drill Timeline & Measured Data
+### Test Timeline & Measured Data
 
 | Event | Timestamp (UTC) | Elapsed from Action | Observed System Behavior |
 | :--- | :--- | :--- | :--- |
@@ -141,7 +147,7 @@ To validate the multi-window burn rate alert pipeline, an active failure drill w
 | **Synthetic Probe Recovery** | 2026-11-23 11:23:32 | +23.5s | Pod reaches `1/1 Running`; blackbox probe succeeds (`probe_success` returns to `1`). |
 | **Fast Burn Alert Resolved** | 2026-11-23 11:25:27 | +138.6s (2m 18.6s) | `burn_rate2m` drops below 14.4 as successful probes repopulate the 2m lookback window. Alert clears. |
 
-### Drill Analysis
+### Alert Validation Test Analysis
 - **Detection Accuracy**: Probe failure was detected in 10.0 seconds, exactly aligning with the 10-second scrape interval.
 - **Alert Timeliness**: The critical fast burn alert fired in **2m 22.0s** (142 seconds), closely matching the theoretical expectation (~2m 26s).
 - **Auto-Recovery**: Once the workload was restored, the alert automatically cleared within 2m 18.6s without human intervention or manual acknowledgment.
